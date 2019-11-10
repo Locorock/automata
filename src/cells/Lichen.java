@@ -4,7 +4,7 @@ import base.Enviro;
 import critters.Critter;
 
 public class Lichen extends Grass {
-    public Lichen(String type, Enviro enviro, String[] args) {
+    public Lichen(String type, Enviro enviro) {
         super (type, enviro, 1);
     }
 

@@ -10,13 +10,13 @@ public abstract class Grass extends Living implements Food {
         super (type, enviro, -1);
         this.growthRate = growthRate;
         this.foodTypes.add ("Grass");
-        this.foodAmounts.add (1, growthRate * r.nextGaussian ());
+        this.foodAmounts.add (growthRate * r.nextGaussian ());
     }
 
     @Override
     public void tick() {
         super.tick ();
-        this.foodAmounts.set (1, this.foodAmounts.get (1) + r.nextGaussian () * (growthRate / 2));
+        this.foodAmounts.set (0, this.foodAmounts.get (0) + r.nextGaussian () * (growthRate / 2));
     }
 
     @Override

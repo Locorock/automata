@@ -5,7 +5,7 @@ import base.Enviro;
 import critters.Critter;
 
 public class Ice extends Cell implements Solid {
-    public Ice(String type, Enviro enviro, String[] args) {
+    public Ice(String type, Enviro enviro) {
         super (type, enviro);
     }
 

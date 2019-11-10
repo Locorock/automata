@@ -4,7 +4,7 @@ import base.Enviro;
 import critters.Critter;
 
 public class LowGrass extends Grass {
-    public LowGrass(String type, Enviro enviro, double growthRate) {
+    public LowGrass(String type, Enviro enviro) {
         super (type, enviro, 2);
     }
 

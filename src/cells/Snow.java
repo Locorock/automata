@@ -5,11 +5,8 @@ import base.Enviro;
 import critters.Critter;
 
 public class Snow extends Cell implements Solid {
-    private String[] args;
-
-    public Snow(String type, Enviro enviro, String[] args) {
+    public Snow(String type, Enviro enviro) {
         super (type, enviro);
-        this.args = args;
     }
 
     @Override

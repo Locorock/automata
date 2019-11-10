@@ -3,11 +3,7 @@ package cells;
 import base.Enviro;
 import critters.Critter;
 
-import java.util.Random;
-
 public class Bush extends Living implements Food {
-    Random r;
-
     public Bush(String type, Enviro enviro) {
         super (type, enviro, 100);
         this.foodTypes.add ("Leafage");
@@ -17,7 +13,7 @@ public class Bush extends Living implements Food {
     @Override
     public void tick() {
         super.tick ();
-        this.foodAmounts.set (1, this.foodAmounts.get (0) + Math.abs (r.nextGaussian () * 2));
+        this.foodAmounts.set (0, this.foodAmounts.get (0) + Math.abs (r.nextGaussian () * 2));
     }
 
     @Override

@@ -6,7 +6,7 @@ import critters.Critter;
 
 public class RockySoil extends Cell implements Solid {
 
-    public RockySoil(String type, Enviro enviro, String[] args) {
+    public RockySoil(String type, Enviro enviro) {
         super (type, enviro);
     }
 
