@@ -1,6 +1,6 @@
 package base;
 
-import cells.FreshWater;
+import cells.RiverWater;
 import enumLists.EnviroList;
 import graphics.TestRender;
 
@@ -360,11 +360,11 @@ public class World {
                     }
                     if (vertical) {
                         for (int j = (int) (-leftSize + startX); j <= rightSize + startX; j++) {
-                            e.getGrid ()[j][y] = new FreshWater ("FreshWater", e, null);
+                            e.getGrid ()[j][y] = new RiverWater ("RiverWater", e);
                         }
                     } else {
                         for (int j = (int) (-leftSize + startY); j <= rightSize + startY; j++) {
-                            e.getGrid ()[x][j] = new FreshWater ("FreshWater", e, null);
+                            e.getGrid ()[x][j] = new RiverWater ("RiverWater", e);
                         }
                     }
                     leftSize = leftSize + r.nextGaussian () / 4;

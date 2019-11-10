@@ -1,43 +1,35 @@
 package cells;
 
-import base.Cell;
 import base.Enviro;
+import critters.Critter;
 
-import java.util.Random;
-
-public class Tree extends Cell {
+public class Tree extends Living implements Food {
     protected double height;
     protected boolean deciduous = true;
-    protected int timeToLive; //Spooky stuff
-    protected boolean dead = false;
-    protected Random r;
+    protected int baseH;
 
-    public Tree(String type, Enviro enviro, String[] args) {
-        super (type, enviro);
-        this.r = enviro.getR ();
-        generateStats ();
+    public Tree(String type, Enviro enviro, int baseH, boolean deciduous) {
+        super (type, enviro, 200);
+        this.deciduous = deciduous;
+        this.baseH = baseH;
+        this.height = Math.abs (baseH + (r.nextGaussian () * baseH / 4)); //DA CONTROLLARE VALORI FINALI CHE POSSONO ESSERE NETIVI
+        this.foodTypes.add ("Leafage");
+        this.foodAmounts.add (Math.abs (baseH + (r.nextGaussian () * baseH / 4)));
     }
 
-    public void generateStats() {
-        double baseH = 2;
-        if (enviro.getBiome () == "savanna" || enviro.getBiome () == "taiga") {
-            baseH = 4;
-        }
-        if (enviro.getBiome () == "taiga") {
-            deciduous = false;
-        }
-        this.height = baseH + (r.nextGaussian () * 2) % baseH;
-        this.timeToLive = (int) Math.abs (200 + r.nextGaussian () * 100);
-    }
-
+    @Override
     public void tick() {
-        if (!dead) {
-            timeToLive--;
-            if (timeToLive <= 0) {
-                this.dead = true;
-            }
-            this.height = this.height + (enviro.getHumidity () / 200) * Math.abs (r.nextGaussian () / 10);
+        super.tick ();
+        if (alive) {
+            this.height = this.height + (enviro.getHumidity () / (baseH * 100)) * Math.abs (r.nextGaussian () / (baseH * 5));
         }
+    }
+
+    public void onEat(Critter critter, int index) {
+        //TODO
+    }
+
+    public void onPassage(Critter critter) {
     }
 
     public double getHeight() {
@@ -54,21 +46,5 @@ public class Tree extends Cell {
 
     public void setDeciduous(boolean deciduous) {
         this.deciduous = deciduous;
-    }
-
-    public int getTimeToLive() {
-        return timeToLive;
-    }
-
-    public void setTimeToLive(int timeToLive) {
-        this.timeToLive = timeToLive;
-    }
-
-    public boolean isDead() {
-        return dead;
-    }
-
-    public void setDead(boolean dead) {
-        this.dead = dead;
     }
 }

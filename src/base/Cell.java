@@ -1,21 +1,24 @@
 package base;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Random;
 
 public abstract class Cell {
     public String type;
     public Enviro enviro;
     protected boolean solid;
+    protected Random r;
 
-    public Cell(String type, Enviro enviros) {
+    public Cell(String type, Enviro enviro) {
         this.type = type;
         this.enviro = enviro;
+        this.r = enviro.getR ();
     }
 
-    public static Cell makeCell(String cellName, Enviro enviro, String[] args) {
+    public static Cell makeCell(String cellName, Enviro enviro) {
         Cell instance = null;
         try {
-            instance = (Cell) Class.forName ("cells." + cellName).getDeclaredConstructor (new Class[]{String.class, Enviro.class, String[].class}).newInstance (cellName, enviro, args);
+            instance = (Cell) Class.forName ("cells." + cellName).getDeclaredConstructor (new Class[]{String.class, Enviro.class}).newInstance (cellName, enviro);
         } catch (InstantiationException e) {
             e.printStackTrace ();
         } catch (IllegalAccessException e) {

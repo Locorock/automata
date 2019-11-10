@@ -1,4 +1,7 @@
 package cells;
 
-public class Solid {
+import critters.Critter;
+
+public interface Solid {
+    void onPassage(Critter critter);
 }

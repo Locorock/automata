@@ -3,7 +3,7 @@ package events;
 import base.Cell;
 import base.Enviro;
 import base.Event;
-import cells.Tree;
+import cells.Living;
 
 public class Earthquake extends Event {
     public Earthquake(Enviro epicenter, String name) {
@@ -17,9 +17,9 @@ public class Earthquake extends Event {
         for (int i = 0; i < grid.length; i++) {
             for (int j = 0; j < grid.length; j++) {
                 Cell cell = grid[j][i];
-                if (cell.getType () == "Tree") {
+                if (cell.getType () == "Living") {
                     if (r.nextInt (10) < str) {
-                        ((Tree) cell).setDead (true);
+                        ((Living) cell).setAlive (false);
                     }
                 }
             }

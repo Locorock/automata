@@ -158,7 +158,7 @@ public class Enviro {
                             int x = r.nextInt (16);
                             int y = r.nextInt (16);
                             if (!filled[x][y]) {
-                                grid[x][y] = makeCell (type.name (), this, null);
+                                grid[x][y] = makeCell (type.name (), this);
                                 filled[x][y] = true;
                             } else {
                                 k--;
@@ -196,7 +196,7 @@ public class Enviro {
                 } else {
                     groundName = groundB;
                 }
-                grid[j][i] = makeCell (groundName, this, null);
+                grid[j][i] = makeCell (groundName, this);
             }
         }
     }

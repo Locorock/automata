@@ -4,13 +4,13 @@ import base.Cell;
 import base.Enviro;
 import critters.Critter;
 
-public class LowWater extends Cell implements FreshWater, Fluid {
-    public LowWater(String type, Enviro enviro) {
+public class RiverWater extends Cell implements Fluid, FreshWater {
+    public RiverWater(String type, Enviro enviro) {
         super (type, enviro);
     }
 
     @Override
-    public void tick() {
+    public void onPassage(Critter critter) {
 
     }
 
@@ -20,7 +20,7 @@ public class LowWater extends Cell implements FreshWater, Fluid {
     }
 
     @Override
-    public void onPassage(Critter critter) {
+    public void tick() {
 
     }
 }

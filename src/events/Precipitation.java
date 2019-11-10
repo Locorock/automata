@@ -20,7 +20,7 @@ public class Precipitation extends Event {
                 Cell cell = grid[j][i];
                 if (CellList.valueOf (cell.getType ()).getPhase () == 1 && !cell.getType ().equals ("Puddle")) {
                     if (r.nextInt (80) < str) {
-                        grid[j][i] = new Puddle ("Puddle", enviro, new String[]{grid[j][i].getType ()});
+                        grid[j][i] = new Puddle ("Puddle", enviro, grid[j][i].getType ());
                     }
                 }
             }
