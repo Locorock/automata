@@ -15,7 +15,7 @@ public class FruitTree extends Tree {
     public void tick() {
         super.tick ();
         if (this.fruits < this.enviro.getHumidity ()) {
-            this.fruits += (this.enviro.getHumidity () * Math.abs (1 + r.nextGaussian () * 0.3)) / 30;
+            this.fruits += (this.enviro.getHumidity () / 90);
         }
     }
 

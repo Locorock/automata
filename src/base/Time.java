@@ -53,6 +53,8 @@ public class Time extends Thread {
         generateEvents ();
         cycleEvents ();
         cycleWorld ();
+        w.panel.repaint ();
+        w.panel2.repaint ();
     }
 
     public void generateEvents() {
@@ -62,7 +64,8 @@ public class Time extends Thread {
                 if (event.getBiomes () == null || event.getBiomes ().contains (enviro.getBiome ())) {
                     int randomN = r.nextInt (event.getRarity ());
                     if (event.getHumAsc () == 1) {
-                        randomN = r.nextInt ((int) Math.floor ((event.getRarity () * 12) / (enviro.getHumidity () + 5)));
+                        int prob = (int) Math.floor ((event.getRarity () * 10) / (enviro.getAvgHum () / 4 + 5));
+                        randomN = r.nextInt (prob);
                     }
                     if (randomN == 0) {
                         try {
@@ -109,6 +112,14 @@ public class Time extends Thread {
     }
 
     public void cycleEnviro(Enviro e) {
+        //e.setTemperature (e.getTemperature()+(e.getAvgTemp()-e.getTemperature ())/100+r.nextGaussian());
+        //e.setHumidity (e.getHumidity ()+(e.getAvgHum()-e.getHumidity ())/50+r.nextGaussian());
+        e.setTemperature (e.getTemperature () + (e.getAvgTemp () - e.getTemperature ()) / 10);
+        if (e.isRiver ()) {
+            e.setHumidity (e.getHumidity () + (e.getAvgHum () + 15 - e.getHumidity ()) / 10);
+        } else {
+            e.setHumidity (e.getHumidity () + (e.getAvgHum () - e.getHumidity ()) / 10);
+        }
         for (int i = 0; i < e.getWidth (); i++) {
             for (int j = 0; j < e.getWidth (); j++) {
                 e.getGrid ()[j][i].tick ();

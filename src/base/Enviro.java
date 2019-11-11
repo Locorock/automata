@@ -17,18 +17,19 @@ public class Enviro {
     private String biome;
 
     private Cell[][] grid;
-    private int width = 16;
+    public static int width = 32;
     private double temperature, humidity, altitude;
+    private double avgTemp, avgHum;
     private Random r;
     private boolean river;
     private int x, y;
 
     private int rainStr, quakeStr, lightningStr, eruptionS;
 
-    public Enviro(double temperature, int altitude, double humidity, String biome, World world, Random r) {
-        this.temperature = temperature;
+    public Enviro(double avgTemp, int altitude, double avgHum, String biome, World world, Random r) {
+        this.avgTemp = avgTemp;
         this.altitude = altitude;
-        this.humidity = humidity;
+        this.avgHum = avgHum;
         this.biome = biome;
         this.world = world;
         this.r = r;
@@ -43,7 +44,6 @@ public class Enviro {
     }
 
     private void initGrid() {
-        this.width = 16;
         grid = new Cell[width][width];
         for (int i = 0; i < width; i++) {
             grid[i] = new Cell[width];
@@ -68,21 +68,26 @@ public class Enviro {
             }
         }
         if (parent2 == null) {
-            this.temperature = parent1.getTemperature ();
-            this.humidity = parent1.getHumidity ();
+            this.avgTemp = parent1.getAvgTemp ();
+            this.avgHum = parent1.getAvgHum ();
             this.altitude = parent1.getAltitude ();
             this.distance = parent1.getDistance ();
+            this.distance += 1.1 + ((r.nextGaussian () - 0.5) / 1.8); // 1.8 def
         } else {
-            this.temperature = (parent1.getTemperature () + parent2.getTemperature ()) / 2;
-            this.humidity = (parent1.getHumidity () + parent2.getHumidity ()) / 2;
+            this.avgTemp = (parent1.getAvgTemp () + parent2.getAvgTemp ()) / 2;
+            this.avgHum = (parent1.getAvgHum () + parent2.getAvgHum ()) / 2;
             this.altitude = (parent1.getAltitude () + parent2.getAltitude ()) / 2;
             this.distance = (parent1.getDistance () + parent2.getDistance ()) / 2;
+            this.distance += 1 + ((r.nextGaussian () - 0.5) / 1.8); // 1.8 def
         }
-        this.distance += 1 + ((r.nextGaussian () - 0.5) / 1.8); // 1.8 def
-        this.temperature += r.nextGaussian () * 4;  //VARIANZA STATISTICHE MONDO
-        this.humidity += r.nextGaussian () * 4;
-        this.humidity = Math.abs (this.humidity);
+
+        this.avgTemp += r.nextGaussian () * 4;  //VARIANZA STATISTICHE MONDO
+        this.avgHum += r.nextGaussian () * 4;
+        this.avgHum = Math.abs (this.avgHum);
         this.altitude = this.altitude + (r.nextGaussian () * 3 - 2);
+
+        this.temperature = avgTemp;
+        this.humidity = avgHum;
     }
 
     public void linkDir(Enviro parent, int dirx, int diry) {
@@ -115,7 +120,7 @@ public class Enviro {
                     grounds.add (type.name ());
                     elements.add (-1);
                 } else {
-                    elements.add ((int) Math.round (((this.humidity / 20) + Math.abs (r.nextGaussian () / 2)) * type.getHumMult ()));
+                    elements.add ((int) Math.round ((((this.avgHum / 20) + Math.abs (r.nextGaussian () / 2)) * type.getHumMult ()) * Math.pow (width / 16, 2)));
                 }
             } else {
                 elements.add (0);
@@ -130,7 +135,8 @@ public class Enviro {
         } else {
             type2 = CellList.valueOf (grounds.get (1));
             if (type1.getHumMult () == -1 && type2.getHumMult () == 1 || type1.getHumMult () == 1 && type2.getHumMult () == -1) {
-                prob = (int) (Math.floor (20 * Math.log (humidity) + 20) - Math.floor ((20 * Math.log (humidity) + 20) % 100) * Math.floor ((20 * Math.log (humidity) + 20) / 100));
+                int probM = 2;
+                prob = (int) (Math.floor (probM * Math.log (avgHum) + probM) - Math.floor ((probM * Math.log (avgHum) + probM) % 100) * Math.floor ((probM * Math.log (avgHum) + probM) / 100));
             } else {
                 prob = 50;
             }
@@ -153,10 +159,10 @@ public class Enviro {
                         }
                         j = elements.size ();
                     } else {
-                        boolean[][] filled = new boolean[16][16];
+                        boolean[][] filled = new boolean[width][width];
                         for (int k = 0; k < elements.get (j); k++) {
-                            int x = r.nextInt (16);
-                            int y = r.nextInt (16);
+                            int x = r.nextInt (width);
+                            int y = r.nextInt (width);
                             if (!filled[x][y]) {
                                 grid[x][y] = makeCell (type.name (), this);
                                 filled[x][y] = true;
@@ -434,5 +440,21 @@ public class Enviro {
 
     public void setY(int y) {
         this.y = y;
+    }
+
+    public double getAvgTemp() {
+        return avgTemp;
+    }
+
+    public void setAvgTemp(double avgTemp) {
+        this.avgTemp = avgTemp;
+    }
+
+    public double getAvgHum() {
+        return avgHum;
+    }
+
+    public void setAvgHum(double avgHum) {
+        this.avgHum = avgHum;
     }
 }

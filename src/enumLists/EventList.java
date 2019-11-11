@@ -4,11 +4,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public enum EventList {
-    Earthquake (10000, 0, 2, 1, 1, 0, null),
-    Meteor (20000, 0, 3, 1, 1.5, 0, null),
+    Earthquake (20000, 0, 2, 1, 1, 0, null),
+    Meteor (200000, 0, 3, 1, 1.5, 0, null),
     Precipitation (2000, 1, 3, 3, 1.5, 1.5, null),
     Storm (5000, 1, 4, 2, 1.5, 1, null),
-    Volcano (10000, 0, 3, 2, 1.5, 1, Arrays.asList ("Volcano"));
+    Volcano (50000, 0, 3, 2, 1.5, 1, Arrays.asList ("Volcano"));
 
     private final int humAsc, rarity, meanSize, meanDuration;
     private final double stdSize, stdDuration;

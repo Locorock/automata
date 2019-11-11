@@ -46,17 +46,12 @@ public abstract class Event {
             size = 1;
         }
         this.duration = (int) Math.round (eventType.getMeanDuration () + r.nextGaussian () * eventType.getStdDuration ());
-        ;
         if (duration < 1) {
             duration = 1;
         }
 
-        if (eventType.getHumAsc () == 1) {
-            this.size += (int) (epicenter.getHumidity () / (64 / eventType.getMeanSize ()));
-            this.duration += (int) (epicenter.getHumidity () / (64 / eventType.getMeanDuration ()));
-        }
-
         this.affected = epicenter.scanNeighbours (size);
+        System.out.println ("Duration: " + duration);
     }
 
     public int getSeed() {

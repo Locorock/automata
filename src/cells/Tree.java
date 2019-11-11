@@ -3,7 +3,7 @@ package cells;
 import base.Enviro;
 import critters.Critter;
 
-public class Tree extends Living implements Food {
+public abstract class Tree extends Living implements Food {
     protected double height;
     protected boolean deciduous = true;
     protected int baseH;

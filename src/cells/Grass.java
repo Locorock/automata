@@ -16,7 +16,6 @@ public abstract class Grass extends Living implements Food {
     @Override
     public void tick() {
         super.tick ();
-        this.foodAmounts.set (0, this.foodAmounts.get (0) + r.nextGaussian () * (growthRate / 2));
     }
 
     @Override

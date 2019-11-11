@@ -18,13 +18,15 @@ public class Precipitation extends Event {
         for (int i = 0; i < grid.length; i++) {
             for (int j = 0; j < grid.length; j++) {
                 Cell cell = grid[j][i];
-                if (CellList.valueOf (cell.getType ()).getPhase () == 1 && !cell.getType ().equals ("Puddle")) {
+                if (CellList.valueOf (cell.getType ()).getPhase () == 1) {
                     if (r.nextInt (80) < str) {
-                        grid[j][i] = new Puddle ("Puddle", enviro, grid[j][i].getType ());
+                        grid[j][i] = new Puddle ("Puddle", enviro, grid[j][i]);
                     }
                 }
             }
         }
+        enviro.setHumidity (enviro.getHumidity () + 4);
+        enviro.setTemperature (enviro.getTemperature () + ((20 - enviro.getTemperature ()) / 5));
     }
 
     @Override

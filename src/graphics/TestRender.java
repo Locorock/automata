@@ -38,21 +38,21 @@ public class TestRender extends JPanel {
             for (int j = 0; j < grid.get (i).size (); j++) {
                 int width = grid.get (i).size ();
                 if (grid.get (i).get (j) != null) {
-                    g.setColor (Color.getHSBColor ((float) (grid.get (i).get (j).getTemperature () + 180) / 120, 1, 1)); //180-->360
+                    g.setColor (getGreyscale ((int) (grid.get (i).get (j).getTemperature () * 2))); //180-->360
                 } else {
                     g.setColor (Color.white);
                 }
                 Rectangle2D r = new Rectangle (Math.round ((j * wUnit)), Math.round ((i * hUnit)), Math.round (wUnit), Math.round (hUnit));
                 g.fill (r);
                 if (grid.get (i).get (j) != null) {
-                    g.setColor (Color.getHSBColor ((float) (grid.get (i).get (j).getHumidity () + 180) / 120, 1, 1)); //180-->360
+                    g.setColor (getGreyscale ((int) (grid.get (i).get (j).getHumidity () * 3.6))); //180-->360
                 } else {
                     g.setColor (Color.white);
                 }
                 Rectangle2D r2 = new Rectangle (Math.round ((this.getWidth () / 2) + (j * wUnit)), Math.round ((i * hUnit)), Math.round (wUnit), Math.round (hUnit));
                 g.fill (r2);
                 if (grid.get (i).get (j) != null) {
-                    g.setColor (Color.getHSBColor ((float) (grid.get (i).get (j).getAltitude () + 150) / 120, 1, 1)); //180-->360
+                    g.setColor (getGreyscale ((int) (grid.get (i).get (j).getAltitude () * 1.5))); //180-->360
                 } else {
                     g.setColor (Color.white);
                 }
@@ -75,7 +75,12 @@ public class TestRender extends JPanel {
                 g.drawLine (this.getWidth () / 2, 0, this.getWidth () / 2, this.getHeight ());
             }
         }
-        System.out.println (this.getHeight ());
-        System.out.println (((double) this.getHeight () / this.height) * this.height);
+    }
+
+    public Color getGreyscale(int num) {
+        float h = Color.RGBtoHSB (0, num, num, null)[0];
+        float s = Color.RGBtoHSB (0, num, num, null)[1];
+        float b = Color.RGBtoHSB (0, num, num, null)[2];
+        return Color.getHSBColor (h, s, b);
     }
 }

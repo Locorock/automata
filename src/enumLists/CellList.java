@@ -5,21 +5,25 @@ import java.util.List;
 
 public enum CellList {
     BerryBush (3, 4, true, Arrays.asList ("Forest", "Plains", "Taiga")),
-    Bush (3, 8, true, Arrays.asList ("Forest", "Plains", "Taiga", "Savanna")),
+    Bush (3, 12, true, Arrays.asList ("Forest", "Plains", "Taiga", "Savanna")),
     Cactus (3, 32, true, Arrays.asList ("Desert")),
     None (1, 0, false, Arrays.asList ("")),
-    Dirt (1, -1, true, Arrays.asList ("Forest", "Plains", "Savanna", "Wetland", "Jungle", "Steppe")),
+    Dirt (1, -1, true, Arrays.asList ("Forest", "Savanna", "Wetland", "Jungle", "Steppe")),
     FruitTree (3, 4, true, Arrays.asList ("Forest", "Jungle", "Taiga", "Wetland")),
     LowGrass (1, 1, true, Arrays.asList ("Forest", "Plains", "Savanna", "Wetland", "Jungle", "Taiga", "Steppe")),
-    HighGrass (2, 2, true, Arrays.asList ("Plains", "Savanna", "Steppe")),
-    FreshWater (4, 0, false, Arrays.asList ("")),
+    HighGrass (2, 32, true, Arrays.asList ("Plains", "Savanna", "Steppe")),
     Ice (1, -1, false, Arrays.asList ("Glacial")),
     Lichen (1, 1, true, Arrays.asList ("Tundra")),
     LowWater (2, 2, false, Arrays.asList ("Swamp")),
     RockySoil (1, -1, false, Arrays.asList ("Tundra", "Glacial")),
     Sand (1, -1, true, Arrays.asList ("Desert")),
     Snow (1, 1, true, Arrays.asList ("Taiga")),
-    TokenTree (3, 8, true, Arrays.asList ("Forest", "Taiga", "Jungle", "Wetland"));
+    TokenTree (3, 8, true, Arrays.asList ("Forest", "Taiga", "Jungle", "Wetland")),
+    Carcass (4, 1, true, Arrays.asList ("")),
+    SaltWater (4, 2, false, Arrays.asList ("")),
+    Puddle (4, -1, false, Arrays.asList ("")),
+    RiverWater (4, -1, true, Arrays.asList (""));
+
 
     private final double humMult;
     private final List<String> biomes;

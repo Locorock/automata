@@ -16,7 +16,7 @@ public class BerryBush extends Bush {
         super.tick ();
         if (this.foodAmounts.get (1) < this.enviro.getHumidity ()) {
             this.fruits += (this.enviro.getHumidity () * Math.abs (1 + r.nextGaussian () * 0.3)) / 30;
-            this.foodAmounts.set (1, this.foodAmounts.get (1) + this.enviro.getHumidity () * Math.abs (1 + r.nextGaussian () * 0.3) / 30);
+            this.foodAmounts.set (1, this.foodAmounts.get (1) + this.enviro.getHumidity () / 90);
         }
     }
 

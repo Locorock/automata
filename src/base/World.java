@@ -2,9 +2,12 @@ package base;
 
 import cells.RiverWater;
 import enumLists.EnviroList;
+import graphics.EnviroRender;
 import graphics.TestRender;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -13,30 +16,52 @@ public class World {
     private int size;
     private ArrayList<ArrayList<Enviro>> map;
     private Random r;
+    public TestRender panel;
+    public EnviroRender panel2;
+    private int enviroWidth = Enviro.width;
 
     public World(int size) {
         this.size = size;
         int seed = new Random ().nextInt (10000);
         this.r = new Random (seed);
         //generateWorldExp(size, 30,25,100); //DA RIMETTERE HUM A 20
-        generateWorldNobs (size, 25, 25, 150);
+        generateWorldNobs (size, 25, 25, 80);
+
     }
 
     public static void main(String[] args) {
-        World w = new World (10);
-        Time t = new Time (100, 20, w);
+        World w = new World (15);
+        Time t = new Time (500, 20, w);
         JFrame jf = new JFrame ();
         jf.setSize (800, 830);
         jf.setVisible (true);
         TestRender jp = new TestRender (w.map);
         jf.add (jp);
-        System.out.println ("test");
-        //t.start ();
+        w.panel = jp;
+        JFrame jf2 = new JFrame ();
+        jf2.setSize (800, 830);
+        jf2.setVisible (true);
+        EnviroRender er = new EnviroRender (w.map.get (15).get (15).getGrid ());
+        jf2.add (er);
+        w.panel2 = er;
+        JButton right = new JButton ();
+        right.addActionListener (new ActionListener () {
+            int x = 15;
+            int y = 15;
+
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                x++;
+                w.panel2.grid = w.map.get (x).get (y).getGrid ();
+            }
+        });
+        jf2.add (right);
+        t.start ();
     }
 
     public String assignBiome(Enviro e) {
-        double temp = e.getTemperature ();
-        double hum = e.getHumidity ();
+        double temp = e.getAvgTemp ();
+        double hum = e.getAvgHum ();
 
         ArrayList<Double> wProbs = new ArrayList<> ();
         double tProb = 0;
@@ -56,7 +81,7 @@ public class World {
         for (int i = 0; i < wProbs.size (); i++) {
             partial += wProbs.get (i);
             if (selection <= partial) {
-                System.out.println (EnviroList.values ()[i].name () + " found for: " + e.getTemperature () + ", " + e.getHumidity ());
+                System.out.println (EnviroList.values ()[i].name () + " found for: " + e.getAvgTemp () + ", " + e.getAvgHum ());
                 return EnviroList.values ()[i].name ();
             }
         }
@@ -65,6 +90,8 @@ public class World {
 
     public void generateWorldNobs(int max, double temp, double hum, int alt) {
         Enviro start = new Enviro (temp, alt, hum, "Plains", this, r);
+        start.setHumidity (hum);
+        start.setTemperature (temp);
         map = new ArrayList<ArrayList<Enviro>> ();
         for (int i = 0; i < 400; i++) {
             map.add (new ArrayList<> ());
@@ -104,7 +131,32 @@ public class World {
         }
         outfitMap ();
         generateRivers ();
+        smoothMap ();
         printBiomes ();
+    }
+
+    public void smoothMap() {
+        int sumT = 0, sumH = 0, count = 0;
+        for (int i = 0; i < map.size (); i++) {
+            for (int j = 0; j < map.get (i).size (); j++) {
+                if (map.get (i).get (j) != null) {
+                    sumT = (int) map.get (i).get (j).getAvgTemp ();
+                    sumH = (int) map.get (i).get (j).getAvgHum ();
+                    count++;
+                }
+            }
+        }
+        sumT /= count;
+        sumH /= count;
+        for (int i = 0; i < map.size (); i++) {
+            for (int j = 0; j < map.get (i).size (); j++) {
+                if (map.get (i).get (j) != null) {
+                    Enviro e = map.get (i).get (j);
+                    e.setAvgTemp (e.getAvgTemp () + (sumT - e.getAvgTemp ()) / 4);
+                    e.setAvgHum (e.getAvgHum () + (sumH - e.getAvgHum ()) / 4);
+                }
+            }
+        }
     }
 
     public void outfitMap() {
@@ -198,8 +250,7 @@ public class World {
         for (int i = 0; i < nRiviello; i++) {
             Enviro e = map.get ((int) topMax[i][1]).get ((int) topMax[i][2]);
             e.setRiver (true);
-            flowRiverMap (e, -1, new ArrayList<Enviro> () {
-            });
+            flowRiverMap (e, -1, new ArrayList<Enviro> ());
         }
     }
 
@@ -212,10 +263,24 @@ public class World {
         double min = Integer.MAX_VALUE;
         int x = enviro.getX ();
         int y = enviro.getY ();
-        Enviro up = map.get (y - 1).get (x);
-        Enviro right = map.get (y).get (x + 1);
-        Enviro down = map.get (y + 1).get (x);
-        Enviro left = map.get (y).get (x - 1);
+
+        Enviro up = null, right = null, down = null, left = null;
+        if (y - 1 >= 0) {
+            up = map.get (y - 1).get (x);
+        }
+        if (x + 1 < map.get (y).size ()) {
+            right = map.get (y).get (x + 1);
+        }
+        if (y + 1 < map.size ()) {
+            down = map.get (y + 1).get (x);
+        }
+        if (x - 1 >= 0) {
+            left = map.get (y).get (x - 1);
+        }
+
+
+
+
 
         if (up == null || right == null || left == null || down == null) {
             int dirTo;
@@ -259,37 +324,6 @@ public class World {
             }
             enviro.setRiver (true);
             antiLoop.add (enviro);
-
-            if (dirFrom == 0) {
-                System.out.println ("UP");
-            } else {
-                if (dirFrom == 1) {
-                    System.out.println ("RIGHT");
-                } else {
-                    if (dirFrom == 2) {
-                        System.out.println ("DOWN");
-                    } else {
-                        if (dirFrom == -1) {
-                            System.out.println ("START");
-                        } else {
-                            System.out.println ("LEFT");
-                        }
-                    }
-                }
-            }
-            if (dirTo == 0) {
-                System.out.println ("UP");
-            } else {
-                if (dirTo == 1) {
-                    System.out.println ("RIGHT");
-                } else {
-                    if (dirTo == 2) {
-                        System.out.println ("DOWN");
-                    } else {
-                        System.out.println ("LEFT");
-                    }
-                }
-            }
             fillRiver (enviro, dirFrom, dirTo);
             flowRiverMap (next, dirTo, antiLoop);
 
@@ -311,29 +345,29 @@ public class World {
             boolean incremental = true;
             switch (dirs[i]) {
                 case 0: {
-                    startX = 8;
+                    startX = enviroWidth / 2;
                     startY = 0;
                     vertical = true;
                     incremental = true;
                     break;
                 }
                 case 1: {
-                    startX = 15;
-                    startY = 8;
+                    startX = enviroWidth - 1;
+                    startY = enviroWidth / 2;
                     vertical = false;
                     incremental = false;
                     break;
                 }
                 case 2: {
-                    startX = 8;
-                    startY = 15;
+                    startX = enviroWidth / 2;
+                    startY = enviroWidth - 1;
                     vertical = true;
                     incremental = false;
                     break;
                 }
                 case 3: {
                     startX = 0;
-                    startY = 8;
+                    startY = enviroWidth / 2;
                     vertical = false;
                     incremental = true;
                     break;
@@ -347,16 +381,16 @@ public class World {
             int x = startX;
             while (true) {
                 if (incremental) {
-                    if (!(x <= 8)) break;
+                    if (!(x <= enviroWidth / 2)) break;
                 } else {
-                    if (!(x >= 8)) break;
+                    if (!(x >= enviroWidth / 2)) break;
                 }
                 int y = startY;
                 while (true) {
                     if (incremental) {
-                        if (!(y <= 8)) break;
+                        if (!(y <= enviroWidth / 2)) break;
                     } else {
-                        if (!(y >= 8)) break;
+                        if (!(y >= enviroWidth / 2)) break;
                     }
                     if (vertical) {
                         for (int j = (int) (-leftSize + startX); j <= rightSize + startX; j++) {
