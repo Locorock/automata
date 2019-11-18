@@ -1,5 +1,6 @@
-package cells;
+package baseCells;
 
+import base.Appearance;
 import base.Enviro;
 import critters.Critter;
 
@@ -8,8 +9,8 @@ public abstract class Tree extends Living implements Food {
     protected boolean deciduous = true;
     protected int baseH;
 
-    public Tree(String type, Enviro enviro, int baseH, boolean deciduous) {
-        super (type, enviro, 200);
+    public Tree(String type, Enviro enviro, Appearance code, double speedMod, int baseH, boolean deciduous) {
+        super (type, enviro, code, speedMod, 200);
         this.deciduous = deciduous;
         this.baseH = baseH;
         this.height = Math.abs (baseH + (r.nextGaussian () * baseH / 4)); //DA CONTROLLARE VALORI FINALI CHE POSSONO ESSERE NETIVI
@@ -29,7 +30,23 @@ public abstract class Tree extends Living implements Food {
         //TODO
     }
 
+
     public void onPassage(Critter critter) {
+    }
+
+    @Override
+    public String getFoodType(int index) {
+        return foodTypes.get (index);
+    }
+
+    @Override
+    public Double getFoodAmount(int index) {
+        return foodAmounts.get (index);
+    }
+
+    @Override
+    public void setFoodAmount(int index, double amount) {
+        foodAmounts.set (index, amount);
     }
 
     public double getHeight() {
@@ -47,4 +64,6 @@ public abstract class Tree extends Living implements Food {
     public void setDeciduous(boolean deciduous) {
         this.deciduous = deciduous;
     }
+
+
 }

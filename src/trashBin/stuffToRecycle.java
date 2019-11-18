@@ -3,6 +3,53 @@ package trashBin;
 public class stuffToRecycle {
        /*BROKEN
 
+
+    public Path basicPath(Cell dest, WMap wMap){
+
+        int count = 0;
+        double sum = 0;
+        Cell current = enviro.getGrid()[posx][posy];
+        Path path = new Path (current);
+        while(getNextCellTo (current, dest)!=dest){
+            current = getNextCellTo (current, dest);
+            path.getPath ().add(current);
+            sum += wMap.getWeight(current.getX (),current.getY ());
+            count++;
+        }
+        if(sum/count<2){
+            return path;
+        }else {
+            return null;
+        }
+    }
+
+    public Path advancedPathMemo(ArrayList<Cell> deadCells, Cell dest, WMap wMap, int posx, int posy, Path prevPath){
+        if(prevPath.getLast ().equals (dest)){
+            return prevPath;
+        }else{
+            Path nextPath = null;
+            for(int i=-1;i<=1;i++) {
+                for (int j = -1; j<=1; j++) {
+                    if (!(i == 0 && j == 0) && Math.abs (i + j) == 1 && posx+j>=0 && posx+j<enviro.getWidth() && posy+i>=0 && posy+i<enviro.getWidth()) {
+                        Cell c = enviro.getGrid ()[posx + j][posy + i];
+                        if (!deadCells.contains(c) && !prevPath.contains (c) && (Math.abs (this.posx - posx) + Math.abs (this.posy - posy)) < range) {
+                            double cost = wMap.getWeight (posx + j, posy + i);
+                            Path cyclePath = advancedPathMemo (deadCells, dest, wMap, posx + j, posy + i, new Path (prevPath, c, cost));
+                            if (nextPath == null || cyclePath!=null && cyclePath.getCost () < nextPath.getCost ()) {
+                                nextPath = cyclePath;
+                            }
+                        }
+                    }
+                }
+            }
+            if(nextPath==null){
+                deadCells.add(prevPath.getLast ());
+            }
+            return nextPath;
+        }
+    }
+
+
     public void generateWorldExp(int max, double temp, double hum, int alt){
         Enviro start = new Enviro(temp, alt, hum,"Plains", this, r);
         start.generate ();

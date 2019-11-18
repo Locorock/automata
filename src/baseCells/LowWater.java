@@ -1,20 +1,24 @@
-package cells;
+package baseCells;
 
 import base.Appearance;
 import base.Cell;
 import base.Enviro;
-import baseCells.Solid;
 import critters.Critter;
 
-public class Snow extends Cell implements Solid {
+public abstract class LowWater extends Cell implements FreshWater, Fluid {
     static final Appearance code = new Appearance ("", "", "", "", "");
-    static final double speedMod = 0.7;
-    public Snow(String type, Enviro enviro) {
+
+    public LowWater(String type, Enviro enviro, Appearance code, double speedMod) {
         super (type, enviro, code, speedMod);
     }
 
     @Override
     public void tick() {
+
+    }
+
+    @Override
+    public void onDrink(Critter critter) {
 
     }
 

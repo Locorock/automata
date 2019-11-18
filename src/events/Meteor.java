@@ -3,8 +3,8 @@ package events;
 import base.Cell;
 import base.Enviro;
 import base.Event;
+import baseCells.Solid;
 import cells.RockySoil;
-import cells.Solid;
 
 public class Meteor extends Event {
     public Meteor(Enviro epicenter, String name) {
@@ -22,8 +22,8 @@ public class Meteor extends Event {
                     Solid solid = (Solid) cell;
                     grid[j][i] = new RockySoil ("RockySoil", enviro);
                 } catch (ClassCastException e) {
+                    e.printStackTrace ();
                 }
-                ;
             }
         }
     }

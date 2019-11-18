@@ -3,7 +3,7 @@ package events;
 import base.Cell;
 import base.Enviro;
 import base.Event;
-import cells.Living;
+import baseCells.Living;
 
 public class Earthquake extends Event {
     public Earthquake(Enviro epicenter, String name) {

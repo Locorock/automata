@@ -5,7 +5,7 @@ import java.util.List;
 
 public enum CellList {
     BerryBush (3, 4, true, Arrays.asList ("Forest", "Plains", "Taiga")),
-    Bush (3, 12, true, Arrays.asList ("Forest", "Plains", "Taiga", "Savanna")),
+    Shrub (3, 12, true, Arrays.asList ("Forest", "Plains", "Taiga", "Savanna")),
     Cactus (3, 32, true, Arrays.asList ("Desert")),
     None (1, 0, false, Arrays.asList ("")),
     Dirt (1, -1, true, Arrays.asList ("Forest", "Savanna", "Wetland", "Jungle", "Steppe")),
@@ -14,7 +14,7 @@ public enum CellList {
     HighGrass (2, 32, true, Arrays.asList ("Plains", "Savanna", "Steppe")),
     Ice (1, -1, false, Arrays.asList ("Glacial")),
     Lichen (1, 1, true, Arrays.asList ("Tundra")),
-    LowWater (2, 2, false, Arrays.asList ("Swamp")),
+    SwampWater (2, 2, false, Arrays.asList ("Swamp")),
     RockySoil (1, -1, false, Arrays.asList ("Tundra", "Glacial")),
     Sand (1, -1, true, Arrays.asList ("Desert")),
     Snow (1, 1, true, Arrays.asList ("Taiga")),

@@ -12,6 +12,7 @@ public class Enviro {
     private Enviro enviroDown;
     private Enviro enviroLeft;
     private Enviro enviroRight;
+    private Enviro[] enviroDirs;
     private double distance;
     private World world;
     private String biome;
@@ -33,6 +34,7 @@ public class Enviro {
         this.biome = biome;
         this.world = world;
         this.r = r;
+        setDirs ();
         initGrid ();
     }
 
@@ -48,6 +50,14 @@ public class Enviro {
         for (int i = 0; i < width; i++) {
             grid[i] = new Cell[width];
         }
+    }
+
+    public void setDirs() {
+        enviroDirs = new Enviro[4];
+        enviroDirs[0] = getEnviroUp ();
+        enviroDirs[1] = getEnviroRight ();
+        enviroDirs[2] = getEnviroDown ();
+        enviroDirs[3] = getEnviroLeft ();
     }
 
     public void inheritStats(Enviro parent1, int dir1x, int dir1y) {
@@ -176,6 +186,12 @@ public class Enviro {
         }
         System.out.println (CellList.values ().toString ());
         System.out.println (elements.toString ());
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < width; j++) {
+                grid[j][i].setX (j);
+                grid[j][i].setY (i);
+            }
+        }
         printGrid ();
     }
 
@@ -456,5 +472,13 @@ public class Enviro {
 
     public void setAvgHum(double avgHum) {
         this.avgHum = avgHum;
+    }
+
+    public Enviro[] getEnviroDirs() {
+        return enviroDirs;
+    }
+
+    public void setEnviroDirs(Enviro[] dirs) {
+        this.enviroDirs = dirs;
     }
 }

@@ -1,29 +1,31 @@
-package cells;
+package baseCells;
 
 import base.Appearance;
-import base.Cell;
 import base.Enviro;
-import baseCells.Food;
 import critters.Critter;
 
-public class Carcass extends Cell implements Food {
-    static final Appearance code = new Appearance ("01101100", null, "11111111", "11111111", "00000011");
-    static final double speedMod = 1;
-    public Carcass(String type, Enviro enviro, Critter c) {
-        super (type, enviro, code, speedMod);
-        this.foodTypes.add ("Meat");
-        //this.foodAmounts.add(c.getBiomass()); TODO
+public abstract class Bush extends Living implements Food {
+    public Bush(String type, Enviro enviro, Appearance code, double speedMod) {
+        super (type, enviro, code, speedMod, 100);
+        this.foodTypes.add ("Leafage");
+        this.foodAmounts.add (Math.abs (r.nextGaussian () * 2));
     }
 
     @Override
     public void tick() {
-        //decompose TODO
+        super.tick ();
+        this.foodAmounts.set (0, this.foodAmounts.get (0) + Math.abs (r.nextGaussian () * 2));
     }
 
+    @Override
     public void onEat(Critter critter, int index) {
         //TODO
     }
 
+    @Override
+    public void onPassage(Critter critter) {
+
+    }
 
     @Override
     public String getFoodType(int index) {

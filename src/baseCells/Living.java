@@ -1,5 +1,6 @@
-package cells;
+package baseCells;
 
+import base.Appearance;
 import base.Cell;
 import base.Enviro;
 
@@ -8,8 +9,8 @@ public abstract class Living extends Cell implements Solid {
     protected int timeToLive;
     protected int averageTTL;
 
-    public Living(String type, Enviro enviro, int averageTTL) { //200
-        super (type, enviro);
+    public Living(String type, Enviro enviro, Appearance code, double speedMod, int averageTTL) { //200
+        super (type, enviro, code, speedMod);
         this.averageTTL = averageTTL;
         if (averageTTL != -1) {
             this.timeToLive = (int) Math.abs (averageTTL + (r.nextGaussian () * (averageTTL / 2)));

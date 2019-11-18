@@ -1,23 +1,23 @@
 package base;
 
 import cells.RiverWater;
+import critters.Critter;
 import enumLists.EnviroList;
 import graphics.EnviroRender;
 import graphics.TestRender;
 
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Random;
 
 public class World {
-    private ArrayList<Enviro> enviros = new ArrayList<Enviro> ();
+    TestRender panel;
     private int size;
     private ArrayList<ArrayList<Enviro>> map;
     private Random r;
-    public TestRender panel;
-    public EnviroRender panel2;
+    EnviroRender panel2;
+    private ArrayList<Enviro> enviros = new ArrayList<> ();
+    private BitSet[] cellId;
     private int enviroWidth = Enviro.width;
 
     public World(int size) {
@@ -31,7 +31,8 @@ public class World {
 
     public static void main(String[] args) {
         World w = new World (15);
-        Time t = new Time (500, 20, w);
+        /*
+        Time t = new Time (100, 20, w);
         JFrame jf = new JFrame ();
         jf.setSize (800, 830);
         jf.setVisible (true);
@@ -45,6 +46,9 @@ public class World {
         jf2.add (er);
         w.panel2 = er;
         JButton right = new JButton ();
+        right.setBounds (0,0,20,20);
+        w.panel2.setBounds (0,0,800,800);
+        jf2.setLayout (null);
         right.addActionListener (new ActionListener () {
             int x = 15;
             int y = 15;
@@ -53,13 +57,17 @@ public class World {
             public void actionPerformed(ActionEvent actionEvent) {
                 x++;
                 w.panel2.grid = w.map.get (x).get (y).getGrid ();
+                w.panel2.repaint ();
             }
         });
         jf2.add (right);
         t.start ();
+         */
+        Enviro base = w.map.get (15).get (15);
+        Critter critter = new Critter (base, 15, 15);
     }
 
-    public String assignBiome(Enviro e) {
+    private String assignBiome(Enviro e) {
         double temp = e.getAvgTemp ();
         double hum = e.getAvgHum ();
 
@@ -88,7 +96,7 @@ public class World {
         return "";
     }
 
-    public void generateWorldNobs(int max, double temp, double hum, int alt) {
+    private void generateWorldNobs(int max, double temp, double hum, int alt) {
         Enviro start = new Enviro (temp, alt, hum, "Plains", this, r);
         start.setHumidity (hum);
         start.setTemperature (temp);
@@ -135,23 +143,23 @@ public class World {
         printBiomes ();
     }
 
-    public void smoothMap() {
+    private void smoothMap() {
         int sumT = 0, sumH = 0, count = 0;
-        for (int i = 0; i < map.size (); i++) {
-            for (int j = 0; j < map.get (i).size (); j++) {
-                if (map.get (i).get (j) != null) {
-                    sumT = (int) map.get (i).get (j).getAvgTemp ();
-                    sumH = (int) map.get (i).get (j).getAvgHum ();
+        for (ArrayList<Enviro> enviroArrayList : map) {
+            for (Enviro enviro : enviroArrayList) {
+                if (enviro != null) {
+                    sumT = (int) enviro.getAvgTemp ();
+                    sumH = (int) enviro.getAvgHum ();
                     count++;
                 }
             }
         }
         sumT /= count;
         sumH /= count;
-        for (int i = 0; i < map.size (); i++) {
-            for (int j = 0; j < map.get (i).size (); j++) {
-                if (map.get (i).get (j) != null) {
-                    Enviro e = map.get (i).get (j);
+        for (ArrayList<Enviro> enviroArrayList : map) {
+            for (int j = 0; j < enviroArrayList.size (); j++) {
+                if (enviroArrayList.get (j) != null) {
+                    Enviro e = enviroArrayList.get (j);
                     e.setAvgTemp (e.getAvgTemp () + (sumT - e.getAvgTemp ()) / 4);
                     e.setAvgHum (e.getAvgHum () + (sumH - e.getAvgHum ()) / 4);
                 }
@@ -159,12 +167,13 @@ public class World {
         }
     }
 
-    public void outfitMap() {
+    private void outfitMap() {
         for (int i = 0; i < map.size (); i++) {
             boolean empty = true;
             for (int j = 0; j < map.get (i).size (); j++) {
                 if (map.get (i).get (j) != null) {
                     empty = false;
+                    break;
                 }
             }
             if (empty) {
@@ -173,9 +182,9 @@ public class World {
             }
         }
         int found = Integer.MAX_VALUE;
-        for (int i = 0; i < map.size (); i++) {
-            for (int j = 0; j < map.get (i).size (); j++) {
-                if (map.get (i).get (j) != null) {
+        for (ArrayList<Enviro> enviroArrayList : map) {
+            for (int j = 0; j < enviroArrayList.size (); j++) {
+                if (enviroArrayList.get (j) != null) {
                     if (j < found) {
                         found = j;
                     }
@@ -189,9 +198,9 @@ public class World {
         }
 
         int maxE = 0;
-        for (int i = 0; i < map.size (); i++) {
-            for (int j = 0; j < map.get (i).size (); j++) {
-                if (map.get (i).get (j) != null) {
+        for (ArrayList<Enviro> enviroArrayList : map) {
+            for (int j = 0; j < enviroArrayList.size (); j++) {
+                if (enviroArrayList.get (j) != null) {
                     if (j > maxE)
                         maxE = j;
                 }
@@ -199,9 +208,9 @@ public class World {
         }
 
 
-        for (int i = 0; i < map.size (); i++) {
-            for (int j = maxE; j < map.get (i).size (); j++) {
-                map.get (i).remove (j);
+        for (ArrayList<Enviro> enviroArrayList : map) {
+            for (int j = maxE; j < enviroArrayList.size (); j++) {
+                enviroArrayList.remove (j);
                 j--;
             }
         }
@@ -216,12 +225,11 @@ public class World {
         }
     }
 
-    public void generateRivers() {
+    private void generateRivers() {
         int nRiviello = r.nextInt (3) + size / 4;
         if (nRiviello < 0) {
             nRiviello = 1;
         }
-        ;
         double[][] topMax = new double[nRiviello][3];
         for (int k = 0; k < nRiviello; k++) {
             topMax[k] = new double[]{0, 1000, 1000};
@@ -235,6 +243,7 @@ public class World {
                             for (int l = 0; l < nRiviello; l++) {
                                 if (l != k && Math.abs (topMax[l][1] - i) + Math.abs (topMax[l][2] - j) < 8) {
                                     valid = false;
+                                    break;
                                 }
                             }
                             if (valid) {
@@ -250,11 +259,11 @@ public class World {
         for (int i = 0; i < nRiviello; i++) {
             Enviro e = map.get ((int) topMax[i][1]).get ((int) topMax[i][2]);
             e.setRiver (true);
-            flowRiverMap (e, -1, new ArrayList<Enviro> ());
+            flowRiverMap (e, -1, new ArrayList<> ());
         }
     }
 
-    public void flowRiverMap(Enviro enviro, int dirFrom, ArrayList<Enviro> antiLoop) {
+    private void flowRiverMap(Enviro enviro, int dirFrom, ArrayList<Enviro> antiLoop) {
         if (enviro == null) {
             return;
         }
@@ -299,7 +308,6 @@ public class World {
             }
             fillRiver (enviro, dirFrom, dirTo);
             enviro.setRiver (true);
-            return;
         } else {
             int dirTo = 0;
             if (!antiLoop.contains (up) && up.getAltitude () < min) {
@@ -319,7 +327,6 @@ public class World {
             }
             if (!antiLoop.contains (left) && left.getAltitude () < min) {
                 next = left;
-                min = next.getAltitude ();
                 dirTo = 3;
             }
             enviro.setRiver (true);
@@ -330,7 +337,7 @@ public class World {
         }
     }
 
-    public void fillRiver(Enviro e, int from, int to) {
+    private void fillRiver(Enviro e, int from, int to) {
         if (from != -1) {
             from = (from + 2) % 4;
         }
@@ -445,12 +452,12 @@ public class World {
     }
 
     public void printBiomes() {
-        for (int i = 0; i < map.size (); i++) {
-            for (int j = 0; j < map.get (i).size (); j++) {
-                if (map.get (i).get (j) == null) {
+        for (ArrayList<Enviro> enviroArrayList : map) {
+            for (int j = 0; j < enviroArrayList.size (); j++) {
+                if (enviroArrayList.get (j) == null) {
                     System.out.print ("000");
                 } else {
-                    System.out.print (map.get (i).get (j).getBiome ().substring (0, 2) + " ");
+                    System.out.print (enviroArrayList.get (j).getBiome ().substring (0, 2) + " ");
                 }
             }
             System.out.println ();

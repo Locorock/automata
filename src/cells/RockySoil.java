@@ -1,13 +1,16 @@
 package cells;
 
+import base.Appearance;
 import base.Cell;
 import base.Enviro;
+import baseCells.Solid;
 import critters.Critter;
 
 public class RockySoil extends Cell implements Solid {
-
+    static final double speedMod = 1;
+    static final Appearance code = new Appearance ("", "", "", "", "");
     public RockySoil(String type, Enviro enviro) {
-        super (type, enviro);
+        super (type, enviro, code, speedMod);
     }
 
     @Override

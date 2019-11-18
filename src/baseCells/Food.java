@@ -1,4 +1,4 @@
-package cells;
+package baseCells;
 
 import critters.Critter;
 
@@ -9,4 +9,10 @@ public interface Food {
     ArrayList<Double> foodAmounts = new ArrayList<> ();
 
     void onEat(Critter critter, int index);
+
+    String getFoodType(int index);
+
+    Double getFoodAmount(int index);
+
+    void setFoodAmount(int index, double amount);
 }

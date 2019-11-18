@@ -1,4 +1,4 @@
-package cells;
+package baseCells;
 
 import critters.Critter;
 
