@@ -12,11 +12,12 @@ public class GenCode {
     BitSet code;
 
     public GenCode(GenCode a, GenCode b, Random r) {
-        int crossIndex = r.nextInt (a.getCode ().size ());
-        code = (BitSet) b.getCode ().clone ();
-        code.set (0, crossIndex, false);
-        code.or (a.getCode ().get (0, crossIndex));
-
+        code = (BitSet) a.getCode ().clone ();
+        for (int i = 0; i < code.length (); i++) {
+            if (r.nextInt (2) == 0) {
+                code.set (i, b.getCode ().get (i));
+            }
+        }
         for (int i = 0; i < code.size (); i++) {
             if (r.nextInt (100) == 0) {
                 code.flip (i);

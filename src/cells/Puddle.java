@@ -1,6 +1,5 @@
 package cells;
 
-import base.Appearance;
 import base.Cell;
 import base.Enviro;
 import baseCells.LowWater;
@@ -11,9 +10,8 @@ import java.util.Random;
 public class Puddle extends LowWater {
     Cell previous;
     static final double speedMod = 0.5;
-    static final Appearance code = new Appearance ("", "", "", "", "");
     public Puddle(String type, Enviro enviro, Cell previous) {
-        super (type, enviro, code, speedMod);
+        super (type, enviro, speedMod);
         this.previous = previous;
     }
 

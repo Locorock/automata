@@ -1,23 +1,32 @@
 package critters;
 
 import base.Enviro;
+import base.World;
 
 public class WMap {
     Critter c;
     double[][] weights;
-    Enviro e;
+    World w;
 
-    public WMap(Enviro e, Critter c) {
-        this.e = e;
+    public WMap(Critter c, World w) {
         this.c = c;
-        this.weights = new double[e.getWidth ()][e.getWidth ()];
+        this.w = w;
+        this.weights = new double[Enviro.width * w.getMap ().get (0).size ()][Enviro.width * w.getMap ().size ()];
         fill ();
     }
 
     public void fill() {
-        for (int i = 0; i < e.getWidth (); i++) {
-            for (int j = 0; j < e.getWidth (); j++) {
-                weights[j][i] = c.calcWeight (e.getGrid ()[j][i]);
+        for (int i = 0; i < w.getMap ().size (); i++) {
+            for (int j = 0; j < w.getMap ().get (i).size (); j++) {
+                Enviro e = w.getMap ().get (i).get (j);
+                if (e != null) {
+                    int width = e.getWidth ();
+                    for (int k = 0; k < width; k++) {
+                        for (int l = 0; l < width; l++) {
+                            weights[width * j + l][width * i + k] = c.calcWeight (e.getGrid ()[l][k]);
+                        }
+                    }
+                }
             }
         }
     }
@@ -40,13 +49,5 @@ public class WMap {
 
     public void setWeights(double[][] weights) {
         this.weights = weights;
-    }
-
-    public Enviro getE() {
-        return e;
-    }
-
-    public void setE(Enviro e) {
-        this.e = e;
     }
 }

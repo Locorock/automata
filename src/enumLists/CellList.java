@@ -20,7 +20,7 @@ public enum CellList {
     Snow (1, 1, true, Arrays.asList ("Taiga")),
     TokenTree (3, 8, true, Arrays.asList ("Forest", "Taiga", "Jungle", "Wetland")),
     Carcass (4, 1, true, Arrays.asList ("")),
-    SaltWater (4, 2, false, Arrays.asList ("")),
+    SaltWater (1, 1, false, Arrays.asList ("Ocean")),
     Puddle (4, -1, false, Arrays.asList ("")),
     RiverWater (4, -1, true, Arrays.asList (""));
 

@@ -1,16 +1,14 @@
 package cells;
 
-import base.Appearance;
 import base.Cell;
 import base.Enviro;
 import baseCells.Food;
 import critters.Critter;
 
 public class Carcass extends Cell implements Food {
-    static final Appearance code = new Appearance ("01101100", null, "11111111", "11111111", "00000011");
     static final double speedMod = 1;
     public Carcass(String type, Enviro enviro, Critter c) {
-        super (type, enviro, code, speedMod);
+        super (type, enviro, speedMod);
         this.foodTypes.add ("Meat");
         //this.foodAmounts.add(c.getBiomass()); TODO
     }

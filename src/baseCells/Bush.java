@@ -1,20 +1,19 @@
 package baseCells;
 
-import base.Appearance;
 import base.Enviro;
 import critters.Critter;
 
 public abstract class Bush extends Living implements Food {
-    public Bush(String type, Enviro enviro, Appearance code, double speedMod) {
-        super (type, enviro, code, speedMod, 100);
+    public Bush(String type, Enviro enviro, double speedMod) {
+        super (type, enviro, speedMod, 100);
         this.foodTypes.add ("Leafage");
-        this.foodAmounts.add (Math.abs (r.nextGaussian () * 2));
+        this.foodAmounts.add ((2 * enviro.getHumidity ()) / 4);
     }
 
     @Override
     public void tick() {
         super.tick ();
-        this.foodAmounts.set (0, this.foodAmounts.get (0) + Math.abs (r.nextGaussian () * 2));
+        this.foodAmounts.set (0, this.foodAmounts.get (0) + (2 * enviro.getHumidity ()) / 40);
     }
 
     @Override

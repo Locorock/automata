@@ -1,6 +1,5 @@
 package baseCells;
 
-import base.Appearance;
 import base.Enviro;
 import critters.Critter;
 
@@ -9,8 +8,8 @@ public abstract class Tree extends Living implements Food {
     protected boolean deciduous = true;
     protected int baseH;
 
-    public Tree(String type, Enviro enviro, Appearance code, double speedMod, int baseH, boolean deciduous) {
-        super (type, enviro, code, speedMod, 200);
+    public Tree(String type, Enviro enviro, double speedMod, int baseH, boolean deciduous) {
+        super (type, enviro, speedMod, 200);
         this.deciduous = deciduous;
         this.baseH = baseH;
         this.height = Math.abs (baseH + (r.nextGaussian () * baseH / 4)); //DA CONTROLLARE VALORI FINALI CHE POSSONO ESSERE NETIVI
@@ -22,6 +21,7 @@ public abstract class Tree extends Living implements Food {
     public void tick() {
         super.tick ();
         if (alive) {
+            this.foodAmounts.set (0, this.foodAmounts.get (0) + (2 * enviro.getHumidity ()) / 40);
             this.height = this.height + (enviro.getHumidity () / (baseH * 100)) * Math.abs (r.nextGaussian () / (baseH * 5));
         }
     }

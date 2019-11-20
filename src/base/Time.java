@@ -1,10 +1,12 @@
 package base;
 
+import critters.Critter;
 import enumLists.EventList;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.Vector;
 
 public class Time extends Thread {
     ArrayList<Event> events;
@@ -36,7 +38,7 @@ public class Time extends Thread {
                     ticks = 0;
                 }
                 elapsed = (double) (System.nanoTime () - start) / 1000000;
-                System.out.println ("Ceeclo che è durato " + elapsed);
+                //System.out.println ("Ceeclo che è durato " + elapsed);
                 if (elapsed < tickSize)
                     this.sleep ((long) tickSize - (long) elapsed);
             } catch (InterruptedException e) {
@@ -46,15 +48,22 @@ public class Time extends Thread {
     }
 
     public void tick() {
-        //DA IMPLEMENTARE CON CRITTERS
+        for (Critter c : new Vector<Critter> (w.getCritters ())) {
+            if (c.isAlive ()) {
+                c.tick ();
+            } else {
+                w.getCritters ().remove (c);
+            }
+        }
+        System.out.println (w.getCritters ().size ());
     }
 
     public void cycle() {
         generateEvents ();
         cycleEvents ();
         cycleWorld ();
-        w.panel.repaint ();
-        w.panel2.repaint ();
+        //w.panel.repaint ();
+        //w.panel2.repaint ();
     }
 
     public void generateEvents() {

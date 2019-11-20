@@ -1,21 +1,24 @@
 package base;
 
+import critters.Critter;
+
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Random;
 
 public abstract class Cell {
     public String type;
     public Enviro enviro;
-    protected Appearance code;
     protected double speedMod;
     protected Random r;
     protected int x, y;
+    protected int absX, absY;
+    protected ArrayList<Critter> critters = new ArrayList<Critter> ();
 
-    public Cell(String type, Enviro enviro, Appearance code, double speedMod) {
+    public Cell(String type, Enviro enviro, double speedMod) {
         this.type = type;
         this.enviro = enviro;
         this.r = enviro.getR ();
-        this.code = code;
         this.speedMod = speedMod;
     }
 
@@ -36,14 +39,6 @@ public abstract class Cell {
             e.printStackTrace ();
         }
         return instance;
-    }
-
-    public Appearance getCode() {
-        return code;
-    }
-
-    public void setCode(Appearance code) {
-        this.code = code;
     }
 
     public String getType() {
@@ -78,12 +73,36 @@ public abstract class Cell {
         this.y = y;
     }
 
+    public int getAbsX() {
+        return absX;
+    }
+
+    public void setAbsX(int absX) {
+        this.absX = absX;
+    }
+
+    public int getAbsY() {
+        return absY;
+    }
+
+    public void setAbsY(int absY) {
+        this.absY = absY;
+    }
+
     public double getSpeedMod() {
         return speedMod;
     }
 
     public void setSpeedMod(double speedMod) {
         this.speedMod = speedMod;
+    }
+
+    public ArrayList<Critter> getCritters() {
+        return critters;
+    }
+
+    public void setCritters(ArrayList<Critter> critters) {
+        this.critters = critters;
     }
 
     public abstract void tick();

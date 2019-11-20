@@ -9,30 +9,39 @@ import graphics.TestRender;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Random;
+import java.util.Vector;
 
 public class World {
     TestRender panel;
-    private int size;
     private ArrayList<ArrayList<Enviro>> map;
     private Random r;
     EnviroRender panel2;
     private ArrayList<Enviro> enviros = new ArrayList<> ();
     private BitSet[] cellId;
     private int enviroWidth = Enviro.width;
+    private static final int size = 10;
+    private int fullWidth;
+    private int fullHeight;
+    private Vector<Critter> critters = new Vector<Critter> ();
 
-    public World(int size) {
-        this.size = size;
+    public World() {
         int seed = new Random ().nextInt (10000);
         this.r = new Random (seed);
         //generateWorldExp(size, 30,25,100); //DA RIMETTERE HUM A 20
         generateWorldNobs (size, 25, 25, 80);
-
+        this.fullHeight = this.map.size () * enviroWidth;
+        this.fullWidth = this.map.get (0).size () * enviroWidth;
+        Critter c = new Critter ("Jeff", this, 11 * 16 + 1, 11 * 16 + 1);
+        Critter c2 = new Critter ("Katrina", this, 11 * 16 + 5, 11 * 16 + 5);
+        critters.add (c);
+        critters.add (c2);
+        Time t = new Time (100, 20, this);
+        t.start ();
     }
 
     public static void main(String[] args) {
-        World w = new World (15);
+        World w = new World ();
         /*
-        Time t = new Time (100, 20, w);
         JFrame jf = new JFrame ();
         jf.setSize (800, 830);
         jf.setVisible (true);
@@ -61,10 +70,7 @@ public class World {
             }
         });
         jf2.add (right);
-        t.start ();
          */
-        Enviro base = w.map.get (15).get (15);
-        Critter critter = new Critter (base, 15, 15);
     }
 
     private String assignBiome(Enviro e) {
@@ -89,7 +95,6 @@ public class World {
         for (int i = 0; i < wProbs.size (); i++) {
             partial += wProbs.get (i);
             if (selection <= partial) {
-                System.out.println (EnviroList.values ()[i].name () + " found for: " + e.getAvgTemp () + ", " + e.getAvgHum ());
                 return EnviroList.values ()[i].name ();
             }
         }
@@ -140,7 +145,37 @@ public class World {
         outfitMap ();
         generateRivers ();
         smoothMap ();
+        fillOcean ();
+        coordinateCells ();
         printBiomes ();
+    }
+
+    private void fillOcean() {
+        for (ArrayList<Enviro> row : map) {
+            for (int i = 0; i < row.size (); i++) {
+                if (row.get (i) == null) {
+                    row.set (i, new Enviro (20, 0, 20, "Ocean", this, r));
+                    row.get (i).generate ();
+                }
+            }
+        }
+    }
+
+    private void coordinateCells() {
+        for (int i = 0; i < map.size (); i++) {
+            for (int j = 0; j < map.get (i).size (); j++) {
+                Enviro e = map.get (i).get (j);
+                if (e != null) {
+                    int width = e.getWidth ();
+                    for (int k = 0; k < width; k++) {
+                        for (int l = 0; l < width; l++) {
+                            e.getGrid ()[l][k].setAbsX (width * j + l);
+                            e.getGrid ()[l][k].setAbsY (width * i + k);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void smoothMap() {
@@ -168,6 +203,7 @@ public class World {
     }
 
     private void outfitMap() {
+        ArrayList<ArrayList<Enviro>> keep = new ArrayList<> ();
         for (int i = 0; i < map.size (); i++) {
             boolean empty = true;
             for (int j = 0; j < map.get (i).size (); j++) {
@@ -177,10 +213,16 @@ public class World {
                 }
             }
             if (empty) {
-                map.remove (i);
+                keep.add (map.remove (i));
                 i--;
             }
         }
+
+        map.add (0, keep.remove (0));
+        map.add (0, keep.remove (0));
+        map.add (keep.remove (0));
+        map.add (keep.remove (0));
+
         int found = Integer.MAX_VALUE;
         for (ArrayList<Enviro> enviroArrayList : map) {
             for (int j = 0; j < enviroArrayList.size (); j++) {
@@ -191,7 +233,7 @@ public class World {
                 }
             }
         }
-        for (int j = 0; j < found; j++) {
+        for (int j = 0; j < found - 2; j++) {
             for (int i = 0; i < map.size (); i++) {
                 map.get (i).remove (0);
             }
@@ -209,7 +251,7 @@ public class World {
 
 
         for (ArrayList<Enviro> enviroArrayList : map) {
-            for (int j = maxE; j < enviroArrayList.size (); j++) {
+            for (int j = maxE + 3; j < enviroArrayList.size (); j++) {
                 enviroArrayList.remove (j);
                 j--;
             }
@@ -223,6 +265,8 @@ public class World {
                 }
             }
         }
+
+
     }
 
     private void generateRivers() {
@@ -341,7 +385,6 @@ public class World {
         if (from != -1) {
             from = (from + 2) % 4;
         }
-        System.out.println ("DIR3 " + to);
         int[] dirs = new int[]{from, to};
         for (int i = 0; i < 2; i++) {
             if (dirs[i] == -1) {
@@ -429,9 +472,10 @@ public class World {
                 }
             }
         }
-        System.out.println (e.getX () + " - " + e.getY ());
-        //e.printGrid ();
+    }
 
+    public Cell getAbsCell(int absx, int absy) {
+        return getMap ().get (absy / enviroWidth).get (absx / enviroWidth).getGrid ()[absx % enviroWidth][absy % enviroWidth];
     }
 
     public void printWhole() {
@@ -483,14 +527,6 @@ public class World {
         this.enviros = enviros;
     }
 
-    public int getSize() {
-        return size;
-    }
-
-    public void setSize(int size) {
-        this.size = size;
-    }
-
     public Random getR() {
         return r;
     }
@@ -505,5 +541,29 @@ public class World {
 
     public void setMap(ArrayList<ArrayList<Enviro>> map) {
         this.map = map;
+    }
+
+    public int getFullWidth() {
+        return fullWidth;
+    }
+
+    public void setFullWidth(int fullWidth) {
+        this.fullWidth = fullWidth;
+    }
+
+    public int getFullHeight() {
+        return fullHeight;
+    }
+
+    public void setFullHeight(int fullHeight) {
+        this.fullHeight = fullHeight;
+    }
+
+    public Vector<Critter> getCritters() {
+        return critters;
+    }
+
+    public void setCritters(Vector<Critter> critters) {
+        this.critters = critters;
     }
 }

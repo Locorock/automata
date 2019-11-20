@@ -18,7 +18,7 @@ public class Enviro {
     private String biome;
 
     private Cell[][] grid;
-    public static int width = 32;
+    public static int width = 16;
     private double temperature, humidity, altitude;
     private double avgTemp, avgHum;
     private Random r;
@@ -34,7 +34,6 @@ public class Enviro {
         this.biome = biome;
         this.world = world;
         this.r = r;
-        setDirs ();
         initGrid ();
     }
 
@@ -70,7 +69,6 @@ public class Enviro {
                     if (map.get (x + k).get (y + l) != null) {
                         if (parent1 != map.get (x + k).get (y + l)) {
                             parent2 = map.get (x + k).get (y + l);
-                            System.out.println (parent1 + " " + parent2);
                             linkDir (parent2, -k, -l);
                         }
                     }
@@ -98,6 +96,7 @@ public class Enviro {
 
         this.temperature = avgTemp;
         this.humidity = avgHum;
+        setDirs ();
     }
 
     public void linkDir(Enviro parent, int dirx, int diry) {
@@ -184,15 +183,12 @@ public class Enviro {
                 }
             }
         }
-        System.out.println (CellList.values ().toString ());
-        System.out.println (elements.toString ());
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < width; j++) {
                 grid[j][i].setX (j);
                 grid[j][i].setY (i);
             }
         }
-        printGrid ();
     }
 
     public void printGrid() {
