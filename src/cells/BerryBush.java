@@ -5,23 +5,21 @@ import baseCells.Bush;
 import critters.Critter;
 
 public class BerryBush extends Bush {
-    static final double speedMod = 0.7;
+    static final double growthRateA = 0.5;
+    static final double growthRateB = 1;
     public BerryBush(String type, Enviro enviro) {
-        super (type, enviro, speedMod);
-        this.foodAmounts.add (this.enviro.getHumidity () / 5);
-        this.foodTypes.add ("Fruit");
+        super (type, enviro, growthRateA * enviro.getHumidity ());
+        foods.addFood (growthRateB, "Leafage", 0, growthRateB * enviro.getHumidity ());
     }
 
     public void tick() {
-        super.tick ();
-        if (this.foodAmounts.get (1) < this.enviro.getHumidity ()) {
-            this.foodAmounts.set (1, this.foodAmounts.get (1) + this.enviro.getHumidity () / 90);
+        if (alive) {
+            super.tick ();
         }
     }
 
     @Override
-    public void onEat(Critter critter, int index) {
-        super.onEat (critter, index);
-        //TODO
+    public void onPassage(Critter critter) {
+        super.onPassage (critter);
     }
 }

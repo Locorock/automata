@@ -6,13 +6,19 @@ import baseCells.Grass;
 import critters.Critter;
 
 public class HighGrass extends Grass implements Food {
-    static final double speedMod = 0.8;
+    static final double growthRate = 2;
     public HighGrass(String type, Enviro enviro) {
-        super (type, enviro, speedMod, 4);
+        super (type, enviro, 1);
     }
 
     @Override
+    public void tick() {
+        if (alive) {
+            super.tick ();
+        }
+    }
+    @Override
     public void onPassage(Critter critter) {
-
+        critter.setSpeed (critter.getBaseSpeed () * 0.8);
     }
 }

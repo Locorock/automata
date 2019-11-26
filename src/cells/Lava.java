@@ -2,13 +2,12 @@ package cells;
 
 import base.Cell;
 import base.Enviro;
-import baseCells.Fluid;
+import baseCells.Solid;
 import critters.Critter;
 
-public class Lava extends Cell implements Fluid {
-    static final double speedMod = 0.1;
+public class Lava extends Cell implements Solid {
     public Lava(String type, Enviro enviro) {
-        super (type, enviro, speedMod);
+        super (type, enviro);
     }
 
     @Override
@@ -17,5 +16,6 @@ public class Lava extends Cell implements Fluid {
 
     @Override
     public void onPassage(Critter critter) {
+        critter.setSpeed (critter.getBaseSpeed () * 0.3);
     }
 }

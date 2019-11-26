@@ -1,5 +1,6 @@
 package base;
 
+import baseCells.Food;
 import enumLists.CellList;
 
 import java.util.ArrayList;
@@ -89,8 +90,8 @@ public class Enviro {
             this.distance += 1 + ((r.nextGaussian () - 0.5) / 1.8); // 1.8 def
         }
 
-        this.avgTemp += r.nextGaussian () * 4;  //VARIANZA STATISTICHE MONDO
-        this.avgHum += r.nextGaussian () * 4;
+        this.avgTemp += r.nextGaussian () * 5;  //VARIANZA STATISTICHE MONDO
+        this.avgHum += r.nextGaussian () * 5;
         this.avgHum = Math.abs (this.avgHum);
         this.altitude = this.altitude + (r.nextGaussian () * 3 - 2);
 
@@ -119,7 +120,7 @@ public class Enviro {
     }
 
     public void generate() {
-
+        System.out.println (this.getBiome ());
         ArrayList<Integer> elements = new ArrayList<> ();
         ArrayList<String> grounds = new ArrayList<> ();
         for (int i = 1; i < CellList.values ().length; i++) {
@@ -129,6 +130,7 @@ public class Enviro {
                     grounds.add (type.name ());
                     elements.add (-1);
                 } else {
+                    System.out.println (type.name ());
                     elements.add ((int) Math.round ((((this.avgHum / 20) + Math.abs (r.nextGaussian () / 2)) * type.getHumMult ()) * Math.pow (width / 16, 2)));
                 }
             } else {
@@ -172,9 +174,10 @@ public class Enviro {
                         for (int k = 0; k < elements.get (j); k++) {
                             int x = r.nextInt (width);
                             int y = r.nextInt (width);
-                            if (!filled[x][y]) {
-                                grid[x][y] = makeCell (type.name (), this);
-                                filled[x][y] = true;
+                            if (!filled[y][x]) {
+                                grid[y][x] = makeCell (type.name (), this);
+                                System.out.println (type.name ());
+                                filled[y][x] = true;
                             } else {
                                 k--;
                             }
@@ -185,8 +188,8 @@ public class Enviro {
         }
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < width; j++) {
-                grid[j][i].setX (j);
-                grid[j][i].setY (i);
+                grid[i][j].setX (j);
+                grid[i][j].setY (i);
             }
         }
     }
@@ -194,10 +197,10 @@ public class Enviro {
     public void printGrid() {
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < width; j++) {
-                if (grid[j][i] == null) {
+                if (grid[i][j] == null) {
                     System.out.print ("00 ");
                 } else {
-                    System.out.print (grid[j][i].getType ().substring (0, 3) + "");
+                    System.out.print (grid[i][j].getType ().substring (0, 3) + "");
                 }
             }
             System.out.println ();
@@ -214,7 +217,10 @@ public class Enviro {
                 } else {
                     groundName = groundB;
                 }
-                grid[j][i] = makeCell (groundName, this);
+                grid[i][j] = makeCell (groundName, this);
+                if (grid[i][j] instanceof Food) {
+                    ((Food) grid[i][j]).init ();
+                }
             }
         }
     }
@@ -319,8 +325,8 @@ public class Enviro {
     public void replaceWith(Cell oldCell, Cell newCell) {
         for (int i = 0; i < grid.length; i++) {
             for (int j = 0; j < grid.length; j++) {
-                if (grid[j][i] == oldCell) {
-                    grid[j][i] = newCell;
+                if (grid[i][j] == oldCell) {
+                    grid[i][j] = newCell;
                 }
             }
         }

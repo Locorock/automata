@@ -9,17 +9,16 @@ import java.util.Random;
 public abstract class Cell {
     public String type;
     public Enviro enviro;
-    protected double speedMod;
     protected Random r;
     protected int x, y;
     protected int absX, absY;
+    protected boolean update = true;
     protected ArrayList<Critter> critters = new ArrayList<Critter> ();
 
-    public Cell(String type, Enviro enviro, double speedMod) {
+    public Cell(String type, Enviro enviro) {
         this.type = type;
         this.enviro = enviro;
         this.r = enviro.getR ();
-        this.speedMod = speedMod;
     }
 
 
@@ -89,14 +88,6 @@ public abstract class Cell {
         this.absY = absY;
     }
 
-    public double getSpeedMod() {
-        return speedMod;
-    }
-
-    public void setSpeedMod(double speedMod) {
-        this.speedMod = speedMod;
-    }
-
     public ArrayList<Critter> getCritters() {
         return critters;
     }
@@ -106,4 +97,14 @@ public abstract class Cell {
     }
 
     public abstract void tick();
+
+    public boolean getUpdate() {
+        return update;
+    }
+
+    ;
+
+    public void setUpdate(boolean update) {
+        this.update = update;
+    }
 }

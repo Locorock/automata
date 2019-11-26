@@ -1,41 +1,49 @@
 package baseCells;
 
 import base.Enviro;
+import base.Foods;
 import critters.Critter;
 
-public abstract class Grass extends Living implements Food {
-    double growthRate;
+import java.util.ArrayList;
 
-    public Grass(String type, Enviro enviro, double speedMod, double growthRate) {
-        super (type, enviro, speedMod, -1);
-        this.growthRate = growthRate;
-        this.foodTypes.add ("Grass");
-        this.foodAmounts.add (growthRate * enviro.getHumidity () / 4);
+public abstract class Grass extends Living implements Food {
+    public double growthRate;
+    protected Foods foods;
+
+    public Grass(String type, Enviro enviro, double growthRate) {
+        super (type, enviro, -1);
+        foods = new Foods (enviro);
+        foods.addFood (growthRate, "Leafage", 0, growthRate * enviro.getHumidity ());
     }
 
     @Override
     public void tick() {
         super.tick ();
-        this.foodAmounts.set (0, this.foodAmounts.get (0) + enviro.getHumidity () * growthRate / 40);
+        foods.grow ();
+    }
+
+    @Override
+    public void onPassage(Critter critter) {
+        critter.setSpeed (critter.getBaseSpeed () * 0.9);
     }
 
     @Override
     public void onEat(Critter critter, int index) {
-        //TODO
+        critter.setHunger (critter.getHunger () - foods.eatFood (index));
     }
 
     @Override
-    public String getFoodType(int index) {
-        return foodTypes.get (index);
+    public ArrayList<String> getFoodTypes() {
+        return foods.getFoodTypes ();
     }
 
     @Override
     public Double getFoodAmount(int index) {
-        return foodAmounts.get (index);
+        return foods.getFoodAmount (index);
     }
 
     @Override
-    public void setFoodAmount(int index, double amount) {
-        foodAmounts.set (index, amount);
+    public void init() {
+        foods.init ();
     }
 }

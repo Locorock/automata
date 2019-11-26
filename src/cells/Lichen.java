@@ -5,13 +5,19 @@ import baseCells.Grass;
 import critters.Critter;
 
 public class Lichen extends Grass {
-    static final double speedMod = 1;
+    public static double growthRate = 0.05;
     public Lichen(String type, Enviro enviro) {
-        super (type, enviro, speedMod, 1);
+        super (type, enviro, growthRate);
+    }
+
+    public void tick() {
+        if (alive) {
+            super.tick ();
+        }
     }
 
     @Override
     public void onPassage(Critter critter) {
-
+        critter.setSpeed (critter.getBaseSpeed () * 0.7);
     }
 }

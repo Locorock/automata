@@ -4,12 +4,12 @@ import base.Enviro;
 import baseCells.Tree;
 import critters.Critter;
 
-public class Cactus extends Tree {
-    static final double growthRate = 0.5;
-    public Cactus(String type, Enviro enviro) {
-        super (type, enviro, growthRate, false);
+public class ForestTree extends Tree {
+    public ForestTree(String type, Enviro enviro) {
+        super (type, enviro, 1, true);
     }
 
+    @Override
     public void tick() {
         if (alive) {
             super.tick ();

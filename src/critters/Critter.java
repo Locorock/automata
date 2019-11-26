@@ -5,12 +5,15 @@ import base.Enviro;
 import base.World;
 import baseCells.Food;
 import baseCells.FreshWater;
+import baseCells.Solid;
+import cells.RiverWater;
+import cells.SaltWater;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 
 public class Critter {
-    public ArrayDeque<Cell> path;
+    public static double[][] weights;
     private Enviro enviro;
     private GenCode code;
     public static long id = 0;
@@ -21,29 +24,36 @@ public class Critter {
     private double thirst = 0;
     private int absy;
     private double hunger = 0;
-    private int range = 6; //HARDCODED FOR NOW
-    private double speed = 1;
+    public ArrayDeque<int[]> path;
+    private int range = 8; //HARDCODED FOR NOW
     private double baseSpeed = 1;
     private double movementProgress = 0;
     private double maxThirst = 100;
     private double maxHunger = 100;
     private Critter mate;
-    private boolean mothering = false;
-    private int mateTolerance = 16;
+    private double speed = 2;
+    private int mateTolerance;
+    private double mateRate;
+    private double foodEff;
+    private double waterEff;
+    private double height;
     private boolean alive = true;
     private double age = 0;
     private World world;
     private WMap wMap;
-    private double[][] paths;
+    private int gender;
+    private int wanderX = 0;
+    private int wanderY = 0;
 
     public Critter(String name, World w, int absx, int absy) {
         this (name, w, absx, absy, new GenCode (w.getR ()));
+        this.age = 30;
     }
 
     public Critter(String name, World w, int absx, int absy, Critter father, Critter mother) {
         this (name, w, absx, absy, new GenCode (father.getCode (), mother.getCode (), w.getR ()));
         this.hunger = 80;
-        this.thirst = 80;
+        this.thirst = 60;
     }
 
     public Critter(String name, World w, int absx, int absy, GenCode code) {
@@ -55,69 +65,78 @@ public class Critter {
         this.wMap = new WMap (this, world);
         this.name = name + "_" + id++;
         this.code = code;
-        paths = new double[world.getFullHeight ()][world.getFullWidth ()];  //FRONTLOADED DECLARATION FOR PERFORMANCE
+        this.gender = w.getR ().nextInt (2);
+        this.mateTolerance = code.getCardinality ("AppearanceTolerance");
+        this.mateRate = shiftToRange (0, 16, code.getCardinality ("MateRate"), 8);
+        this.foodEff = shiftToRange (0, 16, code.getCardinality ("FoodEff"), 8);
+        this.waterEff = shiftToRange (0, 16, code.getCardinality ("WaterEff"), 8);
+        this.waterEff = shiftToRange (0, 16, code.getCardinality ("WaterEff"), 8);
+        this.baseSpeed = shiftToRange (0, 16, code.getCardinality ("BaseSpeed"), 8);
     }
 
     public void tick() {
         //AGING AND STATUS EFFECTS
-        System.out.println (name + " - " + (hunger + "").substring (0, 2) + " - " + (thirst + "").substring (0, 2));
+        //System.out.println (name + " / " + (int)(hunger) + " / " + (int)(thirst));
         if (this.thirst > this.maxThirst || this.hunger > this.maxHunger || age > 160) {
             this.alive = false;
             System.out.println ("dead");
             return;
         } else {
-            this.thirst += 0.05;
-            this.hunger += 0.1;
+            this.thirst += 0.1;
+            this.hunger += 0.05;
+            this.age += 0.1;
+        }
+        if (mate != null) {
+            //System.out.println ("Mating");
+            if (mate.getAbsx () == absx && mate.getAbsy () == absy) {
+                if (gender == 0) {
+                    reproduce (mate);
+                }
+            }
+            return;
         }
         if (path == null || path.isEmpty ()) {
-            if (mate != null) {
-                System.out.println ("Mating");
-                if (mate.getAbsx () == absx && mate.getAbsy () == absy) {
-                    if (mothering) {
-                        reproduce (mate);
-                    } else {
-                        this.mate = null;
-                    }
-                }
-                return;
-            }
             if (cell instanceof Food && ((Food) cell).getFoodAmount (0) > 1 && this.hunger > 0) {
-                System.out.println ("Eating");
+                //System.out.println ("Eating");
                 eatOnCell ();
                 return;
             }
             if (cell instanceof FreshWater && this.thirst > 0) {
-                System.out.println ("Sippity");
+                //System.out.println ("Sippin that stuff");
                 drinkOnCell ();
                 return;
             }
-            if (this.hunger < this.maxHunger / 3 && this.thirst < this.maxThirst / 3 && this.age > 30) {
+            if (this.age > 30 && this.gender == 1) {
+                //System.out.println ("looking");
                 path = lookForMate ();
             }
             if (path == null || path.isEmpty ()) {
-                path = choosePath (null);
+                //System.out.println ("Big think");
+                path = choosePath ();
             }
         } else {
             //MOVEMENT COST
-            speed = baseSpeed * cell.getSpeedMod ();
             movementProgress += speed;
-            while (movementProgress > 1) {
-                movementProgress--;
-                Cell next = path.removeFirst ();
-                moveTo (next.getAbsX (), next.getAbsY ());
+            //System.out.println ("Steppy steps");
+            while (movementProgress > 1 && !path.isEmpty ()) {
+                movementProgress -= (1 / speed);
+                int[] next = path.removeFirst ();
+                moveTo (next[0], next[1]);
+                ((Solid) world.getAbsCell (next[0], next[1])).onPassage (this);
             }
-            this.hunger += 0.05;
-            this.thirst += 0.1;
+            this.hunger += 0.2;
+            this.thirst += 0.05;
         }
     }
 
-    public ArrayDeque<Cell> lookForMate() {
+    public ArrayDeque<int[]> lookForMate() {
         for (Critter critter : world.getCritters ()) {
-            if (!critter.equals (this) && Math.abs (critter.absx - this.absx) < range && Math.abs (critter.absy - this.absy) < range) {
+            if (Math.abs (critter.absx - this.absx) < range && Math.abs (critter.absy - this.absy) < range && critter.getGender () == 0) {
                 int diff = critter.code.getHammingDiff ("AppearanceCluster", this.code.getGene ("AppearanceCluster"));
                 if (diff < mateTolerance) {
-                    if (mateHandshake (this, diff) == true) {
-                        return choosePath (new int[]{critter.getAbsx (), critter.getAbsy ()});
+                    if (critter.mateHandshake (this, diff)) {
+                        weights = dijkPaths ();
+                        return pathTo (critter.getAbsx (), critter.getAbsy ());
                     }
                 }
             }
@@ -126,11 +145,9 @@ public class Critter {
     }
 
     public boolean mateHandshake(Critter critter, int diff) {
-        if (critter.code.getHammingDiff ("AppearanceCluster", this.code.getGene ("AppearanceCluster")) < mateTolerance) {
+        if (diff < mateTolerance) {
             if (this.hunger < this.maxHunger / 3 && this.thirst < this.maxThirst / 3) {
                 this.mate = critter;
-                this.mothering = true;
-                System.out.println ("Handshake");
                 return true;
             }
         }
@@ -143,53 +160,85 @@ public class Critter {
         this.hunger += 20;
         this.thirst += 20;
         this.mate = null;
-        this.mothering = false;
     }
 
-    public ArrayDeque<Cell> choosePath(int[] critPos) {
-        paths = dijkPaths ();
+    public ArrayDeque<int[]> choosePath() {
+        weights = dijkPaths ();
         int destx = 0, desty = 0;
-        if (critPos == null) {
-            double max = 0;
-            for (int i = -range / 2; i < range / 2; i++) {
-                for (int j = -range / 2; j < range / 2; j++) {
-                    double propension = paths[j + absx][i + absy];
-                    Cell c = world.getAbsCell (j + absx, i + absy);
-                    if (c instanceof Food) {
-                        propension += hunger + ((Food) c).getFoodAmount (0);
-                    }
-                    if (c instanceof FreshWater) {
-                        System.out.println ("Found sippity");
-                        propension += thirst;
-                    }
-                    if (propension > max) {
-                        max = propension;
-                        destx = j + absx;
-                        desty = i + absy;
-                    }
+        double min = Double.MAX_VALUE;
+        for (int i = -range; i < range; i++) {
+            for (int j = -range; j < range; j++) {
+                double propension = weights[i + absy][j + absx];
+                //System.out.println ("Premod propension: "+propension);
+                Cell c = world.getAbsCell (j + absx, i + absy);
+                if (c instanceof Food) {
+                    propension -= hunger * ((Food) c).getFoodAmount (0) / 70;
+                }
+                if (c instanceof FreshWater) {
+                    propension -= thirst;
+                }
+                //System.out.println ("Postmod propension: "+propension);
+                if (propension < min) {
+                    min = propension;
+                    destx = j + absx;
+                    desty = i + absy;
                 }
             }
-        } else {
-            destx = critPos[0];
-            desty = critPos[1];
         }
-        if (destx == absx && desty == absy) {
-            return null;
+        if (destx == absx && desty == absy) { //WANDER
+            int heartRate = 0;
+            do {
+                heartRate++;
+                if (heartRate == 20) { //100% SCIENTIFIC, NOT HERE TO PREVENT INFINITE LOOPS
+                    this.alive = false;
+                    break;
+                }
+                if (wanderX == 0 && wanderY == 0) { //PUNTO SUI LIMITI DEL RANGE
+                    int direction = world.getR ().nextInt (4);
+                    if (direction >= 2) {
+                        wanderX = world.getR ().nextInt (range * 2 + 1) - range;
+                        if (direction == 2) {
+                            wanderY = 0;
+                        } else {
+                            wanderY = range;
+                        }
+                    } else {
+                        wanderY = world.getR ().nextInt (range * 2 + 1) - range;
+                        if (direction == 0) {
+                            wanderX = 0;
+                        } else {
+                            wanderX = range;
+                        }
+                    }
+                }
+                destx = absx + wanderX;
+                desty = absy + wanderY;
+                if (world.getAbsCell (destx, desty) instanceof SaltWater || world.getAbsCell (destx, desty) instanceof RiverWater) {
+                    wanderX = 0;
+                    wanderY = 0;
+                }
+            } while (wanderX == 0 && wanderY == 0);
+        } else {
+            wanderX = 0;
+            wanderY = 0;
         }
         return pathTo (destx, desty);
     }
 
-    public ArrayDeque<Cell> pathTo(int destx, int desty) {
-        ArrayDeque<Cell> path = new ArrayDeque<Cell> ();
+    public ArrayDeque<int[]> pathTo(int destx, int desty) {
+        if (absx == destx && absy == desty) {
+            return null;
+        }
+        ArrayDeque<int[]> path = new ArrayDeque<int[]> ();
         double min = Double.MAX_VALUE;
         int nextx = 0, nexty = 0;
-        while (desty != this.absy && destx != this.absx) {
-            path.addFirst (world.getAbsCell (destx, desty));
+        while (!(desty == this.absy && destx == this.absx)) {
+            path.addFirst (new int[]{destx, desty});
             for (int i = -1; i <= 1; i++) {
                 for (int j = -1; j <= 1; j++) {
                     if (!(i == 0 && j == 0) && Math.abs (i + j) == 1) {
-                        if (paths[i + desty][j + destx] < min) {
-                            min = paths[i + desty][j + destx];
+                        if (weights[i + desty][j + destx] < min) {
+                            min = weights[i + desty][j + destx];
                             nextx = j + destx;
                             nexty = i + desty;
                         }
@@ -203,62 +252,25 @@ public class Critter {
         return path;
     }
 
-    public void eatOnCell() {
-        Food food = (Food) cell;
-        food.onEat (this, 0);
-        double amount = food.getFoodAmount (0) / 5;
-        food.setFoodAmount (0, amount);
-        double mod = 0;
-        switch (food.getFoodType (0)) {
-            case "Fruit": {
-                mod = 0.5;
-            }
-            case "Meat": {
-                mod = 1;
-            }
-            case "Leafage": {
-                mod = 0.2;
-            }
-            case "Grass": {
-                mod = 0.1;
-
-            }
-        }
-        this.hunger -= mod * amount;
-    }
-
-    public void drinkOnCell() {
-        ((FreshWater) this.cell).onDrink (this);
-        this.thirst -= 3;
-
-    }
-
-    public void moveTo(int absx, int absy) {
-        this.cell = world.getAbsCell (absx, absy);
-        this.absx = absx;
-        this.absy = absy;
-        this.enviro = cell.getEnviro ();
-    }
-
-
     public double[][] dijkPaths() {
         for (int i = absy - Enviro.width; i < absy + Enviro.width; i++) {
-            for (int j = absx - enviro.getWidth (); j < absx + enviro.getWidth (); j++) {
-                paths[i][j] = Double.MAX_VALUE;
+            for (int j = absx - Enviro.width; j < absx + Enviro.width; j++) {
+                if (i >= 0 && j >= 0)
+                    weights[i][j] = Double.MAX_VALUE;
             }
         }
         ArrayList<Cell> visited = new ArrayList<Cell> ();
         ArrayList<Cell> open = new ArrayList<Cell> ();
         open.add (cell);
-        paths[absy][absx] = 0;
+        weights[absy][absx] = 0;
         while (!open.isEmpty ()) {
             Cell min = null;
             double minValue = 99999;
             for (int i = 0; i < open.size (); i++) {
                 Cell next = open.get (i);
-                if (paths[next.getAbsY ()][next.getAbsX ()] < minValue) {
+                if (weights[next.getAbsY ()][next.getAbsX ()] < minValue) {
                     min = next;
-                    minValue = paths[next.getAbsX ()][next.getAbsY ()];
+                    minValue = weights[next.getAbsY ()][next.getAbsX ()];
                 }
             }
             int x = min.getAbsX ();
@@ -267,9 +279,10 @@ public class Critter {
                 for (int j = -1; j <= 1; j++) {
                     if (!(i == 0 && j == 0) && Math.abs (i + j) == 1 && Math.abs (absx - x - j) <= range && Math.abs (absy - y - i) <= range) {
                         Cell next = world.getAbsCell (j + x, i + y);
+
                         if (!visited.contains (next) && !open.contains (next)) {
-                            if (paths[i + y][j + x] == -1 || paths[y][x] + wMap.getWeight (j + x, i + y) < paths[i + y][j + x]) {
-                                paths[i + y][j + x] = paths[y][x] + wMap.getWeight (j + x, i + y);
+                            if (weights[i + y][j + x] == -1 || weights[y][x] + wMap.getWeight (j + x, i + y) < weights[i + y][j + x]) {
+                                weights[i + y][j + x] = weights[y][x] + wMap.getWeight (j + x, i + y);
                             }
                             open.add (next);
                         }
@@ -279,7 +292,26 @@ public class Critter {
             visited.add (min);
             open.remove (min);
         }
-        return paths;
+        return weights;
+    }
+
+    public void eatOnCell() {
+        ((Food) cell).onEat (this, 0);
+    }
+
+    public void drinkOnCell() {
+        ((FreshWater) this.cell).onDrink (this);
+    }
+
+    public void moveTo(int absx, int absy) {
+        this.cell = world.getAbsCell (absx, absy);
+        this.absx = absx;
+        this.absy = absy;
+        this.enviro = cell.getEnviro ();
+    }
+
+    public double shiftToRange(double rangeStart, double rangeEnd, int value, int subdivisions) {
+        return (((rangeEnd - rangeStart) * value) / subdivisions) + rangeStart;
     }
 
     public double calcWeight(Cell cell) {
@@ -404,5 +436,13 @@ public class Critter {
 
     public void setAlive(boolean alive) {
         this.alive = alive;
+    }
+
+    public int getGender() {
+        return gender;
+    }
+
+    public void setGender(int gender) {
+        this.gender = gender;
     }
 }

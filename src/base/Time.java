@@ -38,7 +38,7 @@ public class Time extends Thread {
                     ticks = 0;
                 }
                 elapsed = (double) (System.nanoTime () - start) / 1000000;
-                //System.out.println ("Ceeclo che è durato " + elapsed);
+                System.out.println ("Ceeclo che è durato " + elapsed);
                 if (elapsed < tickSize)
                     this.sleep ((long) tickSize - (long) elapsed);
             } catch (InterruptedException e) {
@@ -56,13 +56,15 @@ public class Time extends Thread {
             }
         }
         System.out.println (w.getCritters ().size ());
+        System.out.println ("Repaint");
+        w.panel.repaint ();
     }
 
     public void cycle() {
         generateEvents ();
         cycleEvents ();
         cycleWorld ();
-        //w.panel.repaint ();
+        w.panel.repaint ();
         //w.panel2.repaint ();
     }
 
@@ -131,7 +133,7 @@ public class Time extends Thread {
         }
         for (int i = 0; i < e.getWidth (); i++) {
             for (int j = 0; j < e.getWidth (); j++) {
-                e.getGrid ()[j][i].tick ();
+                e.getGrid ()[i][j].tick ();
             }
         }
     }

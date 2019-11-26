@@ -3,23 +3,22 @@ package base;
 import cells.RiverWater;
 import critters.Critter;
 import enumLists.EnviroList;
-import graphics.EnviroRender;
-import graphics.TestRender;
+import graphics.WorldRender;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Random;
 import java.util.Vector;
 
 public class World {
-    TestRender panel;
     private ArrayList<ArrayList<Enviro>> map;
     private Random r;
-    EnviroRender panel2;
+    private static final int size = 8;
     private ArrayList<Enviro> enviros = new ArrayList<> ();
     private BitSet[] cellId;
     private int enviroWidth = Enviro.width;
-    private static final int size = 10;
+    public WorldRender panel;
     private int fullWidth;
     private int fullHeight;
     private Vector<Critter> critters = new Vector<Critter> ();
@@ -27,50 +26,27 @@ public class World {
     public World() {
         int seed = new Random ().nextInt (10000);
         this.r = new Random (seed);
-        //generateWorldExp(size, 30,25,100); //DA RIMETTERE HUM A 20
-        generateWorldNobs (size, 25, 25, 80);
+        generateWorldNobs (size, 20, 40, 80);
         this.fullHeight = this.map.size () * enviroWidth;
         this.fullWidth = this.map.get (0).size () * enviroWidth;
-        Critter c = new Critter ("Jeff", this, 11 * 16 + 1, 11 * 16 + 1);
-        Critter c2 = new Critter ("Katrina", this, 11 * 16 + 5, 11 * 16 + 5);
-        critters.add (c);
-        critters.add (c2);
-        Time t = new Time (100, 20, this);
+        Critter.weights = new double[getFullHeight ()][getFullWidth ()];
+        for (int i = 0; i < 15; i++) {
+            Critter c2 = new Critter ("Katrina", this, 15 * 16 + 5, 15 * 16 + 5);
+            critters.add (c2);
+        }
+        JFrame jf = new JFrame ();
+        jf.setSize (800, 830);
+        jf.setVisible (true);
+        WorldRender jp = new WorldRender (this, jf);
+        jf.add (jp);
+        this.panel = jp;
+        Time t = new Time (10, 20, this);
         t.start ();
     }
 
     public static void main(String[] args) {
         World w = new World ();
-        /*
-        JFrame jf = new JFrame ();
-        jf.setSize (800, 830);
-        jf.setVisible (true);
-        TestRender jp = new TestRender (w.map);
-        jf.add (jp);
-        w.panel = jp;
-        JFrame jf2 = new JFrame ();
-        jf2.setSize (800, 830);
-        jf2.setVisible (true);
-        EnviroRender er = new EnviroRender (w.map.get (15).get (15).getGrid ());
-        jf2.add (er);
-        w.panel2 = er;
-        JButton right = new JButton ();
-        right.setBounds (0,0,20,20);
-        w.panel2.setBounds (0,0,800,800);
-        jf2.setLayout (null);
-        right.addActionListener (new ActionListener () {
-            int x = 15;
-            int y = 15;
 
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                x++;
-                w.panel2.grid = w.map.get (x).get (y).getGrid ();
-                w.panel2.repaint ();
-            }
-        });
-        jf2.add (right);
-         */
     }
 
     private String assignBiome(Enviro e) {
@@ -143,8 +119,8 @@ public class World {
             }
         }
         outfitMap ();
+        //smoothMap ();
         generateRivers ();
-        smoothMap ();
         fillOcean ();
         coordinateCells ();
         printBiomes ();
@@ -169,8 +145,8 @@ public class World {
                     int width = e.getWidth ();
                     for (int k = 0; k < width; k++) {
                         for (int l = 0; l < width; l++) {
-                            e.getGrid ()[l][k].setAbsX (width * j + l);
-                            e.getGrid ()[l][k].setAbsY (width * i + k);
+                            e.getGrid ()[k][l].setAbsX (width * j + l);
+                            e.getGrid ()[k][l].setAbsY (width * i + k);
                         }
                     }
                 }
@@ -270,7 +246,7 @@ public class World {
     }
 
     private void generateRivers() {
-        int nRiviello = r.nextInt (3) + size / 4;
+        int nRiviello = r.nextInt (3) + size / 2;
         if (nRiviello < 0) {
             nRiviello = 1;
         }
@@ -285,7 +261,7 @@ public class World {
                         if (map.get (i).get (j).getAltitude () > topMax[k][0]) {
                             boolean valid = true;
                             for (int l = 0; l < nRiviello; l++) {
-                                if (l != k && Math.abs (topMax[l][1] - i) + Math.abs (topMax[l][2] - j) < 8) {
+                                if (l != k && Math.abs (topMax[l][1] - i) + Math.abs (topMax[l][2] - j) < 6) {
                                     valid = false;
                                     break;
                                 }
@@ -425,8 +401,8 @@ public class World {
                 default:
                     throw new IllegalStateException ("Unexpected value: " + dirs[i]);
             }
-            double leftSize = 1;
-            double rightSize = 1;
+            double leftSize = 2;
+            double rightSize = 2;
 
             int x = startX;
             while (true) {
@@ -444,15 +420,15 @@ public class World {
                     }
                     if (vertical) {
                         for (int j = (int) (-leftSize + startX); j <= rightSize + startX; j++) {
-                            e.getGrid ()[j][y] = new RiverWater ("RiverWater", e);
+                            e.getGrid ()[y][j] = new RiverWater ("RiverWater", e);
                         }
                     } else {
                         for (int j = (int) (-leftSize + startY); j <= rightSize + startY; j++) {
-                            e.getGrid ()[x][j] = new RiverWater ("RiverWater", e);
+                            e.getGrid ()[j][x] = new RiverWater ("RiverWater", e);
                         }
                     }
-                    leftSize = leftSize + r.nextGaussian () / 4;
-                    rightSize = rightSize + r.nextGaussian () / 4;
+                    leftSize = leftSize + r.nextGaussian () / 3;
+                    rightSize = rightSize + r.nextGaussian () / 3;
                     if (leftSize < 0) {
                         leftSize = 0;
                     }
@@ -475,24 +451,18 @@ public class World {
     }
 
     public Cell getAbsCell(int absx, int absy) {
-        return getMap ().get (absy / enviroWidth).get (absx / enviroWidth).getGrid ()[absx % enviroWidth][absy % enviroWidth];
-    }
-
-    public void printWhole() {
-        for (ArrayList<Enviro> row : map) {
-            for (int i = 0; i < 16; i++) {
-                for (Enviro enviro : row) {
-                    for (int j = 0; j < 16; j++) {
-                        if (enviro == null) {
-                            System.out.print ("000");
-                        } else {
-                            System.out.print ((enviro.getGrid ()[j][i].getType () + "").substring (0, 3));
-                        }
-                    }
-                }
-                System.out.println ();
-            }
+        try {
+            return getMap ().get (absy / enviroWidth).get (absx / enviroWidth).getGrid ()[absy % enviroWidth][absx % enviroWidth];
+        } catch (IndexOutOfBoundsException e) {
+            e.printStackTrace ();
+            System.out.println (absy + "/" + enviroWidth + "=" + absy / enviroWidth);
+            System.out.println (absx + "/" + enviroWidth + "=" + absx / enviroWidth);
+            System.out.println (absx + "%" + enviroWidth + "=" + absx % enviroWidth);
+            System.out.println (absy + "%" + enviroWidth + "=" + absy % enviroWidth);
+            System.out.println (this.map.size ());
+            System.out.println (this.getFullHeight ());
         }
+        return null;
     }
 
     public void printBiomes() {

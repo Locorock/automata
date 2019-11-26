@@ -18,9 +18,12 @@ public class Precipitation extends Event {
         for (int i = 0; i < grid.length; i++) {
             for (int j = 0; j < grid.length; j++) {
                 Cell cell = grid[j][i];
-                if (CellList.valueOf (cell.getType ()).getPhase () == 1) {
+                if (CellList.valueOf (cell.getType ()).getPhase () == 1 && !cell.getType ().equals ("SaltWater")) {
                     if (r.nextInt (80) < str) {
+                        Cell prev = grid[j][i];
                         grid[j][i] = new Puddle ("Puddle", enviro, grid[j][i]);
+                        grid[j][i].setAbsX (prev.getAbsX ());
+                        grid[j][i].setAbsY (prev.getAbsY ());
                     }
                 }
             }

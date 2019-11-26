@@ -1,52 +1,54 @@
 package baseCells;
 
 import base.Enviro;
+import base.Foods;
 import critters.Critter;
+
+import java.util.ArrayList;
 
 public abstract class Tree extends Living implements Food {
     protected double height;
     protected boolean deciduous = true;
     protected int baseH;
+    protected Foods foods;
 
-    public Tree(String type, Enviro enviro, double speedMod, int baseH, boolean deciduous) {
-        super (type, enviro, speedMod, 200);
+    public Tree(String type, Enviro enviro, double growthRate, boolean deciduous) {
+        super (type, enviro, 200);
         this.deciduous = deciduous;
         this.baseH = baseH;
-        this.height = Math.abs (baseH + (r.nextGaussian () * baseH / 4)); //DA CONTROLLARE VALORI FINALI CHE POSSONO ESSERE NETIVI
-        this.foodTypes.add ("Leafage");
-        this.foodAmounts.add (Math.abs (baseH + (r.nextGaussian () * baseH / 4)));
+        this.height = Math.abs (baseH + (r.nextGaussian () * baseH / 4));
+        foods = new Foods (enviro);
+        foods.addFood (growthRate, "Leafage", 0, growthRate * enviro.getHumidity ());
     }
 
     @Override
     public void tick() {
         super.tick ();
-        if (alive) {
-            this.foodAmounts.set (0, this.foodAmounts.get (0) + (2 * enviro.getHumidity ()) / 40);
-            this.height = this.height + (enviro.getHumidity () / (baseH * 100)) * Math.abs (r.nextGaussian () / (baseH * 5));
-        }
-    }
-
-    public void onEat(Critter critter, int index) {
-        //TODO
-    }
-
-
-    public void onPassage(Critter critter) {
+        this.height = this.height + (enviro.getHumidity () / (baseH * 100));
     }
 
     @Override
-    public String getFoodType(int index) {
-        return foodTypes.get (index);
+    public void onEat(Critter critter, int index) {
+        critter.setHunger (critter.getHunger () - foods.eatFood (index));
+    }
+
+    @Override
+    public ArrayList<String> getFoodTypes() {
+        return foods.getFoodTypes ();
     }
 
     @Override
     public Double getFoodAmount(int index) {
-        return foodAmounts.get (index);
+        return foods.getFoodAmount (index);
+    }
+
+    public void onPassage(Critter critter) {
+        critter.setSpeed (critter.getBaseSpeed () * 0.8);
     }
 
     @Override
-    public void setFoodAmount(int index, double amount) {
-        foodAmounts.set (index, amount);
+    public void init() {
+        foods.init ();
     }
 
     public double getHeight() {

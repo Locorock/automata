@@ -6,9 +6,8 @@ import baseCells.Solid;
 import critters.Critter;
 
 public class Ice extends Cell implements Solid {
-    static final double speedMod = 0.8;
     public Ice(String type, Enviro enviro) {
-        super (type, enviro, speedMod);
+        super (type, enviro);
     }
 
     @Override
@@ -17,7 +16,7 @@ public class Ice extends Cell implements Solid {
 
     @Override
     public void onPassage(Critter critter) {
-
+        critter.setSpeed (critter.getBaseSpeed () * 0.7);
     }
 
 

@@ -2,13 +2,12 @@ package cells;
 
 import base.Cell;
 import base.Enviro;
-import baseCells.Fluid;
+import baseCells.Solid;
 import critters.Critter;
 
-public class SaltWater extends Cell implements Fluid {
-    static final double speedMod = 0.2;
+public class SaltWater extends Cell implements Solid {
     public SaltWater(String type, Enviro enviro) {
-        super (type, enviro, speedMod);
+        super (type, enviro);
     }
 
     @Override
@@ -18,6 +17,6 @@ public class SaltWater extends Cell implements Fluid {
 
     @Override
     public void onPassage(Critter critter) {
-
+        critter.setSpeed (critter.getBaseSpeed () * 0.1);
     }
 }

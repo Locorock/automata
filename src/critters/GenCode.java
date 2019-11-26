@@ -37,6 +37,11 @@ public class GenCode {
         return code.get (gi.getOffset (), gi.getOffset () + gi.getSize ());
     }
 
+    public int getCardinality(String name) {
+        GeneIds gi = GeneIds.valueOf (name);
+        return code.get (gi.getOffset (), gi.getOffset () + gi.getSize ()).cardinality ();
+    }
+
     public int getHammingDiff(String name, BitSet b) {
         if (b == null || getGene (name) == null) {
             return 0;
