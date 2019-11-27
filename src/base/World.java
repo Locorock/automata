@@ -26,7 +26,7 @@ public class World {
     public World() {
         int seed = new Random ().nextInt (10000);
         this.r = new Random (seed);
-        generateWorldNobs (size, 20, 40, 80);
+        generateWorldNobs (size, 20, 30, 80);
         this.fullHeight = this.map.size () * enviroWidth;
         this.fullWidth = this.map.get (0).size () * enviroWidth;
         Critter.weights = new double[getFullHeight ()][getFullWidth ()];
@@ -78,7 +78,7 @@ public class World {
     }
 
     private void generateWorldNobs(int max, double temp, double hum, int alt) {
-        Enviro start = new Enviro (temp, alt, hum, "Plains", this, r);
+        Enviro start = new Enviro (temp, alt, hum, "PrimSoup", this, r);
         start.setHumidity (hum);
         start.setTemperature (temp);
         map = new ArrayList<ArrayList<Enviro>> ();

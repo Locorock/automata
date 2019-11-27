@@ -12,7 +12,6 @@ public class SaltWater extends Cell implements Solid {
 
     @Override
     public void tick() {
-
     }
 
     @Override

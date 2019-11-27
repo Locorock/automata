@@ -176,8 +176,10 @@ public class Enviro {
                             int y = r.nextInt (width);
                             if (!filled[y][x]) {
                                 grid[y][x] = makeCell (type.name (), this);
-                                System.out.println (type.name ());
                                 filled[y][x] = true;
+                                if (grid[y][x] instanceof Food) {
+                                    ((Food) grid[y][x]).init ();
+                                }
                             } else {
                                 k--;
                             }
@@ -345,7 +347,7 @@ public class Enviro {
     }
 
     public void setWidth(int width) {
-        this.width = width;
+        Enviro.width = width;
     }
 
     public double getTemperature() {

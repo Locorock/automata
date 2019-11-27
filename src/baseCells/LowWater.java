@@ -15,6 +15,10 @@ public abstract class LowWater extends Cell implements FreshWater, Solid {
     }
 
     @Override
+    public void tick() {
+    }
+
+    @Override
     public void onPassage(Critter critter) {
         critter.setSpeed (critter.getBaseSpeed () * 0.5);
     }

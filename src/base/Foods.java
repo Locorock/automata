@@ -18,7 +18,7 @@ public class Foods {
         growthRates.add (growthRate);
         foodTypes.add (foodType);
         foodAmounts.add (foodAmount);
-        maxAmounts.add (maxAmount);
+        maxAmounts.add (maxAmount / 3); //test
         size++;
     }
 

@@ -8,9 +8,9 @@ import baseCells.FreshWater;
 import baseCells.Solid;
 import cells.RiverWater;
 import cells.SaltWater;
+import enumLists.CellList;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
+import java.util.*;
 
 public class Critter {
     public static double[][] weights;
@@ -19,17 +19,17 @@ public class Critter {
     public static long id = 0;
     public String name;
     private Cell cell;
-    private ArrayList<WMap> wMaps = new ArrayList<> ();
     private int absx;
     private double thirst = 0;
     private int absy;
     private double hunger = 0;
     public ArrayDeque<int[]> path;
-    private int range = 8; //HARDCODED FOR NOW
-    private double baseSpeed = 1;
+    private Map<String, Double> propensionMap = new HashMap<> ();
+    private int range = 6; //HARDCODED FOR NOW
+    private double baseSpeed;
     private double movementProgress = 0;
-    private double maxThirst = 100;
-    private double maxHunger = 100;
+    private int maxThirst = 100;
+    private int maxHunger = 100;
     private Critter mate;
     private double speed = 2;
     private int mateTolerance;
@@ -37,8 +37,11 @@ public class Critter {
     private double foodEff;
     private double waterEff;
     private double height;
+    private int timeToLive;
     private boolean alive = true;
     private double age = 0;
+    private int mateCooldown;
+    private int mateElapsedTime = 0;
     private World world;
     private WMap wMap;
     private int gender;
@@ -47,7 +50,7 @@ public class Critter {
 
     public Critter(String name, World w, int absx, int absy) {
         this (name, w, absx, absy, new GenCode (w.getR ()));
-        this.age = 30;
+        this.age = 0;
     }
 
     public Critter(String name, World w, int absx, int absy, Critter father, Critter mother) {
@@ -67,24 +70,35 @@ public class Critter {
         this.code = code;
         this.gender = w.getR ().nextInt (2);
         this.mateTolerance = code.getCardinality ("AppearanceTolerance");
-        this.mateRate = shiftToRange (0, 16, code.getCardinality ("MateRate"), 8);
-        this.foodEff = shiftToRange (0, 16, code.getCardinality ("FoodEff"), 8);
-        this.waterEff = shiftToRange (0, 16, code.getCardinality ("WaterEff"), 8);
-        this.waterEff = shiftToRange (0, 16, code.getCardinality ("WaterEff"), 8);
-        this.baseSpeed = shiftToRange (0, 16, code.getCardinality ("BaseSpeed"), 8);
+        this.mateRate = shiftToRange (0.5, 3, code.getCardinality ("MateRate"), 8);
+        this.foodEff = shiftToRange (1, 1, code.getCardinality ("FoodEff"), 8);
+        this.waterEff = shiftToRange (1, 1, code.getCardinality ("WaterEff"), 8);
+        this.baseSpeed = shiftToRange (0.5, 4, code.getCardinality ("BaseSpeed"), 8);
+        this.height = shiftToRange (0.5, 4, code.getCardinality ("Height"), 8);
+        this.timeToLive = (int) (300 + (w.getR ().nextInt (50)) - (mateRate * 70));
+        this.mateCooldown = (int) (10 * mateRate);
+        BitSet set = this.code.getGene ("PropensionCluster");
+        int index = 0;
+        for (CellList row : CellList.values ()) {
+            this.propensionMap.put (row.name (), shiftToRange (0, 2, set.get (index * 8, index * 8 + 8).cardinality (), 8));
+            index++;
+        }
     }
 
     public void tick() {
         //AGING AND STATUS EFFECTS
         //System.out.println (name + " / " + (int)(hunger) + " / " + (int)(thirst));
-        if (this.thirst > this.maxThirst || this.hunger > this.maxHunger || age > 160) {
+        if (this.thirst > this.maxThirst || this.hunger > this.maxHunger || age > timeToLive) {
             this.alive = false;
             System.out.println ("dead");
             return;
         } else {
-            this.thirst += 0.1;
-            this.hunger += 0.05;
+            this.thirst += 0.1 * foodEff;
+            this.hunger += 0.05 * waterEff;
             this.age += 0.1;
+        }
+        if (mateElapsedTime > 0) {
+            mateElapsedTime--;
         }
         if (mate != null) {
             //System.out.println ("Mating");
@@ -96,17 +110,17 @@ public class Critter {
             return;
         }
         if (path == null || path.isEmpty ()) {
-            if (cell instanceof Food && ((Food) cell).getFoodAmount (0) > 1 && this.hunger > 0) {
+            if (cell instanceof Food && ((Food) cell).getFoodAmount (0) > 1 && this.propensionMap.get (cell.getType ()) * this.hunger > 10) {
                 //System.out.println ("Eating");
                 eatOnCell ();
                 return;
             }
-            if (cell instanceof FreshWater && this.thirst > 0) {
+            if (cell instanceof FreshWater && this.propensionMap.get (cell.getType ()) * this.thirst > 10) {
                 //System.out.println ("Sippin that stuff");
                 drinkOnCell ();
                 return;
             }
-            if (this.age > 30 && this.gender == 1) {
+            if (this.age > 20 && this.gender == 1) {
                 //System.out.println ("looking");
                 path = lookForMate ();
             }
@@ -124,8 +138,8 @@ public class Critter {
                 moveTo (next[0], next[1]);
                 ((Solid) world.getAbsCell (next[0], next[1])).onPassage (this);
             }
-            this.hunger += 0.2;
-            this.thirst += 0.05;
+            this.hunger += 0.2 * foodEff * baseSpeed;
+            this.thirst += 0.05 * waterEff * baseSpeed;
         }
     }
 
@@ -146,7 +160,7 @@ public class Critter {
 
     public boolean mateHandshake(Critter critter, int diff) {
         if (diff < mateTolerance) {
-            if (this.hunger < this.maxHunger / 3 && this.thirst < this.maxThirst / 3) {
+            if (this.hunger < this.maxHunger / 3 && this.thirst < this.maxThirst / 3 /*&& this.mateElapsedTime==0*/) {
                 this.mate = critter;
                 return true;
             }
@@ -157,6 +171,7 @@ public class Critter {
     public void reproduce(Critter father) {
         Critter child = new Critter ("Salino", world, absx, absy, father, this);
         world.getCritters ().add (child);
+        this.mateElapsedTime = mateCooldown;
         this.hunger += 20;
         this.thirst += 20;
         this.mate = null;
@@ -168,14 +183,14 @@ public class Critter {
         double min = Double.MAX_VALUE;
         for (int i = -range; i < range; i++) {
             for (int j = -range; j < range; j++) {
-                double propension = weights[i + absy][j + absx];
                 //System.out.println ("Premod propension: "+propension);
                 Cell c = world.getAbsCell (j + absx, i + absy);
+                double propension = this.propensionMap.get (c.getType ());
                 if (c instanceof Food) {
                     propension -= hunger * ((Food) c).getFoodAmount (0) / 70;
                 }
                 if (c instanceof FreshWater) {
-                    propension -= thirst;
+                    propension -= thirst * ((FreshWater) c).getDrinkAmount () / 70;
                 }
                 //System.out.println ("Postmod propension: "+propension);
                 if (propension < min) {
@@ -350,11 +365,11 @@ public class Critter {
         this.thirst = thirst;
     }
 
-    public double getMaxThirst() {
+    public int getMaxThirst() {
         return maxThirst;
     }
 
-    public void setMaxThirst(double maxThirst) {
+    public void setMaxThirst(int maxThirst) {
         this.maxThirst = maxThirst;
     }
 
@@ -366,11 +381,11 @@ public class Critter {
         this.hunger = hunger;
     }
 
-    public double getMaxHunger() {
+    public int getMaxHunger() {
         return maxHunger;
     }
 
-    public void setMaxHunger(double maxHunger) {
+    public void setMaxHunger(int maxHunger) {
         this.maxHunger = maxHunger;
     }
 
@@ -444,5 +459,13 @@ public class Critter {
 
     public void setGender(int gender) {
         this.gender = gender;
+    }
+
+    public double getAge() {
+        return age;
+    }
+
+    public void setAge(double age) {
+        this.age = age;
     }
 }

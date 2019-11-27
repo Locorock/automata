@@ -2,7 +2,9 @@ package base;
 
 import critters.Critter;
 import enumLists.EventList;
+import graphics.GeneRenderer;
 
+import javax.swing.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Random;
@@ -14,6 +16,7 @@ public class Time extends Thread {
     private double tickSize; //in seconds
     private int cycleSize; //in ticks
     private int ticks = 0;
+    private int tot = 0;
     private World w;
     private int seed;
 
@@ -40,7 +43,7 @@ public class Time extends Thread {
                 elapsed = (double) (System.nanoTime () - start) / 1000000;
                 System.out.println ("Ceeclo che è durato " + elapsed);
                 if (elapsed < tickSize)
-                    this.sleep ((long) tickSize - (long) elapsed);
+                    sleep ((long) tickSize - (long) elapsed);
             } catch (InterruptedException e) {
                 e.printStackTrace ();
             }
@@ -58,6 +61,16 @@ public class Time extends Thread {
         System.out.println (w.getCritters ().size ());
         System.out.println ("Repaint");
         w.panel.repaint ();
+        if (tot == 200) {
+            JFrame jf = new JFrame ();
+            jf.setSize (640, 630);
+            jf.setVisible (true);
+            GeneRenderer jp = new GeneRenderer ();
+            jf.add (jp);
+            jp.render (w.getCritters ().get (15));
+            this.interrupt ();
+        }
+        tot++;
     }
 
     public void cycle() {
@@ -116,8 +129,10 @@ public class Time extends Thread {
 
     public void cycleWorld() {
         long start = System.nanoTime ();
-        for (Enviro e : w.getEnviros ()) {
-            cycleEnviro (e);
+        for (ArrayList<Enviro> row : w.getMap ()) {
+            for (Enviro e : row) {
+                cycleEnviro (e);
+            }
         }
         System.out.println ("Ciclo celle: " + (double) (System.nanoTime () - start) / 1000000);
     }

@@ -5,20 +5,27 @@ import base.Enviro;
 import base.World;
 import baseCells.Food;
 import baseCells.FreshWater;
+import cells.SaltWater;
 import critters.Critter;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.geom.Rectangle2D;
 import java.util.Vector;
 
-public class WorldRender extends JPanel {
+public class WorldRender extends JPanel implements MouseMotionListener, MouseListener {
     private Enviro enviro;
     private int width;
     private float wUnit, hUnit;
     private World w;
     private JFrame f;
     private boolean init = false;
+    private int xSelected;
+    private int ySelected;
+    private Rectangle2D select;
 
     public WorldRender(World w, JFrame f) {
         this.w = w;
@@ -31,6 +38,8 @@ public class WorldRender extends JPanel {
         } else {
             wUnit = hUnit;
         }
+        this.addMouseListener (this);
+        this.addMouseMotionListener (this);
     }
 
     public void update(Graphics graphics) {
@@ -138,16 +147,16 @@ public class WorldRender extends JPanel {
                     }
                 }
                 */
-                c = Color.white;
+                c = Color.black;
                 if (current instanceof Food) {
                     c = getGreyscale ((int) Math.round (((Food) current).getFoodAmount (0)) * 8);
                 }
-                if (current instanceof FreshWater) {
+                if (current instanceof FreshWater || current instanceof SaltWater) {
                     c = Color.blue;
                 }
                 for (Critter critter : new Vector<Critter> (w.getCritters ())) {
                     if (critter.getAbsx () == j && critter.getAbsy () == i) {
-                        c = Color.magenta;
+                        c = Color.red;
                     }
                 }
                 g.setColor (c);
@@ -158,6 +167,11 @@ public class WorldRender extends JPanel {
             prevx = 0;
             prevy += Math.round (hUnit);
         }
+        if (select != null) {
+            g.setColor (Color.yellow);
+            g.draw (select);
+        }
+
     }
 
     public Color getGreyscale(int num) {
@@ -165,5 +179,44 @@ public class WorldRender extends JPanel {
         float s = Color.RGBtoHSB (0, num, 0, null)[1];
         float b = Color.RGBtoHSB (0, num, 0, null)[2];
         return Color.getHSBColor (h, s, b);
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent mouseEvent) {
+
+    }
+
+    @Override
+    public void mousePressed(MouseEvent mouseEvent) {
+        xSelected = mouseEvent.getX ();
+        ySelected = mouseEvent.getY ();
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent mouseEvent) {
+        Rectangle2D selection = new Rectangle (xSelected, ySelected, mouseEvent.getX (), mouseEvent.getY ());
+        //EVALUATE CRITTERS IN SELECTED AREA
+        System.out.println (selection.getBounds2D ());
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent mouseEvent) {
+
+    }
+
+    @Override
+    public void mouseExited(MouseEvent mouseEvent) {
+
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent mouseEvent) {
+        select = new Rectangle2D.Double (xSelected, ySelected, -xSelected + mouseEvent.getX (), -ySelected + mouseEvent.getY ());
+        repaint ();
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent mouseEvent) {
+
     }
 }

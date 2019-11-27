@@ -11,16 +11,18 @@ public class SwampWater extends LowWater implements FreshWater {
     }
 
     @Override
-    public void tick() {
-    }
-
-    @Override
     public void onDrink(Critter critter) {
         super.onDrink (critter);
+        critter.setAge (critter.getAge () + 0.1);
     }
 
     @Override
     public void onPassage(Critter critter) {
         super.onPassage (critter);
+    }
+
+    @Override
+    public double getDrinkAmount() {
+        return 50;
     }
 }

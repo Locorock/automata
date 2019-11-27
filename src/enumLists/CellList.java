@@ -4,27 +4,30 @@ import java.util.Arrays;
 import java.util.List;
 
 public enum CellList {
+    Ambrosia (2, 16, true, Arrays.asList ("PrimSoup")),
     BerryBush (3, 4, true, Arrays.asList ("Forest", "Plains", "Taiga")),
-    Shrub (3, 12, true, Arrays.asList ("Forest", "Plains", "Taiga", "Savanna")),
-    Cactus (3, 32, true, Arrays.asList ("Desert")),
-    None (1, 0, false, Arrays.asList ("")),
+    BirthingBoughs (3, 0.5, true, Arrays.asList ("PrimSoup")),
+    Cactus (3, 16, true, Arrays.asList ("Desert")),
+    Carcass (4, 1, true, Arrays.asList ("")),
     Dirt (1, -1, true, Arrays.asList ("Forest", "Savanna", "Wetland", "Jungle", "Steppe")),
+    ForestTree (3, 6, true, Arrays.asList ("Forest", "Jungle", "Wetland")),
     FruitTree (3, 4, true, Arrays.asList ("Forest", "Jungle", "Taiga")),
-    LowGrass (1, 1, true, Arrays.asList ("Forest", "Plains", "Savanna", "Wetland", "Jungle", "Taiga", "Steppe")),
     HighGrass (2, 32, true, Arrays.asList ("Plains", "Savanna", "Steppe")),
+    Lava (2, 1, false, Arrays.asList ("")),
     Ice (1, -1, false, Arrays.asList ("Glacial")),
     Lichen (1, 1, true, Arrays.asList ("Tundra")),
-    SwampWater (2, 2, false, Arrays.asList ("Wetland")),
-    RockySoil (1, -1, false, Arrays.asList ("Tundra", "Glacial")),
-    Sand (1, -1, true, Arrays.asList ("Desert")),
-    Snow (1, 1, true, Arrays.asList ("Taiga")),
-    ForestTree (3, 6, true, Arrays.asList ("Forest", "Jungle", "Wetland")),
+    LowGrass (1, 1, true, Arrays.asList ("Forest", "Plains", "Savanna", "Wetland", "Jungle", "Taiga", "Steppe", "PrimSoup")),
     PlainsTree (3, 1, true, Arrays.asList ("Plains", "Savanna")),
-    TaigaTree (3, 4, true, Arrays.asList ("Taiga")),
-    Carcass (4, 1, true, Arrays.asList ("")),
-    SaltWater (1, 1, false, Arrays.asList ("Ocean")),
     Puddle (4, -1, false, Arrays.asList ("")),
-    RiverWater (4, -1, true, Arrays.asList (""));
+    RiverWater (4, -1, true, Arrays.asList ("")),
+    RockySoil (1, -1, false, Arrays.asList ("Tundra", "Glacial")),
+    SaltWater (1, 1, false, Arrays.asList ("Ocean")),
+    Sand (1, -1, true, Arrays.asList ("Desert")),
+    Shrub (3, 12, true, Arrays.asList ("Forest", "Plains", "Taiga", "Savanna")),
+    Snow (1, 1, true, Arrays.asList ("Taiga")),
+    SwampWater (2, 2, false, Arrays.asList ("Wetland")),
+    TaigaTree (3, 4, true, Arrays.asList ("Taiga")),
+    None (1, 0, false, Arrays.asList (""));
 
 
     private final double humMult;

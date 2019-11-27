@@ -1,4 +1,4 @@
-package cells;
+package trashBin;
 
 import base.Enviro;
 import baseCells.Living;

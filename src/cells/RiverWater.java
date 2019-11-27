@@ -22,7 +22,11 @@ public class RiverWater extends Cell implements Solid, FreshWater {
     }
 
     @Override
-    public void tick() {
+    public double getDrinkAmount() {
+        return 50;
+    }
 
+    @Override
+    public void tick() {
     }
 }

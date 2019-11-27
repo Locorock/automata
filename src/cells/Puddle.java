@@ -25,6 +25,11 @@ public class Puddle extends LowWater {
     }
 
     @Override
+    public double getDrinkAmount() {
+        return 50;
+    }
+
+    @Override
     public void onPassage(Critter critter) {
         super.onPassage (critter);
     }

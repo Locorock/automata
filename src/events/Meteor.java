@@ -3,7 +3,6 @@ package events;
 import base.Cell;
 import base.Enviro;
 import base.Event;
-import baseCells.Solid;
 import cells.RockySoil;
 
 public class Meteor extends Event {
@@ -17,10 +16,11 @@ public class Meteor extends Event {
         enviro.setQuakeStr (enviro.getQuakeStr () + str);
         for (int i = 0; i < grid.length; i++) {
             for (int j = 0; j < grid.length; j++) {
-                Cell cell = grid[j][i];
+                Cell cell = grid[i][j];
                 try {
-                    Solid solid = (Solid) cell;
-                    grid[j][i] = new RockySoil ("RockySoil", enviro);
+                    grid[i][j] = new RockySoil ("RockySoil", enviro);
+                    grid[i][j].setAbsX (cell.getAbsX ());
+                    grid[i][j].setAbsX (cell.getAbsY ());
                 } catch (ClassCastException e) {
                     e.printStackTrace ();
                 }
