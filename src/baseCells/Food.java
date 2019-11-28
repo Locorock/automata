@@ -5,11 +5,11 @@ import critters.Critter;
 import java.util.ArrayList;
 
 public interface Food {
-    void onEat(Critter critter, int index);
+    double onEat(Critter critter, int index);
 
     void init();
 
-    ArrayList<String> getFoodTypes();
+    ArrayList<Integer> getFoodTypes();
 
     Double getFoodAmount(int index);
 }

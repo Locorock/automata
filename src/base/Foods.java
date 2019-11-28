@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class Foods {
     int size = 0;
     private ArrayList<Double> growthRates = new ArrayList<> ();
-    private ArrayList<String> foodTypes = new ArrayList<> ();
+    private ArrayList<Integer> foodTypes = new ArrayList<> ();
     private ArrayList<Double> foodAmounts = new ArrayList<> ();
     private ArrayList<Double> maxAmounts = new ArrayList<> ();
     private Enviro enviro;
@@ -14,7 +14,7 @@ public class Foods {
         this.enviro = e;
     }
 
-    public void addFood(double growthRate, String foodType, double foodAmount, double maxAmount) {
+    public void addFood(double growthRate, int foodType, double foodAmount, double maxAmount) {
         growthRates.add (growthRate);
         foodTypes.add (foodType);
         foodAmounts.add (foodAmount);
@@ -39,11 +39,11 @@ public class Foods {
         }
     }
 
-    public ArrayList<String> getFoodTypes() {
+    public ArrayList<Integer> getFoodTypes() {
         return foodTypes;
     }
 
-    public String getFoodType(int index) {
+    public int getFoodType(int index) {
         return foodTypes.get (index);
     }
 

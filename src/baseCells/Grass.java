@@ -13,7 +13,7 @@ public abstract class Grass extends Living implements Food {
     public Grass(String type, Enviro enviro, double growthRate) {
         super (type, enviro, -1);
         foods = new Foods (enviro);
-        foods.addFood (growthRate, "Leafage", 0, growthRate * enviro.getHumidity ());
+        foods.addFood (growthRate, 0, 0, growthRate * enviro.getHumidity ());
     }
 
     @Override
@@ -28,12 +28,11 @@ public abstract class Grass extends Living implements Food {
     }
 
     @Override
-    public void onEat(Critter critter, int index) {
-        critter.setHunger (critter.getHunger () - foods.eatFood (index));
+    public double onEat(Critter critter, int index) {
+        return foods.eatFood (index);
     }
-
     @Override
-    public ArrayList<String> getFoodTypes() {
+    public ArrayList<Integer> getFoodTypes() {
         return foods.getFoodTypes ();
     }
 

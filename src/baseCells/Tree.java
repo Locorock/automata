@@ -18,7 +18,7 @@ public abstract class Tree extends Living implements Food {
         this.baseH = baseH;
         this.height = Math.abs (baseH + (r.nextGaussian () * baseH / 4));
         foods = new Foods (enviro);
-        foods.addFood (growthRate, "Leafage", 0, growthRate * enviro.getHumidity ());
+        foods.addFood (growthRate, 2, 0, growthRate * enviro.getHumidity ());
     }
 
     @Override
@@ -28,12 +28,11 @@ public abstract class Tree extends Living implements Food {
     }
 
     @Override
-    public void onEat(Critter critter, int index) {
-        critter.setHunger (critter.getHunger () - foods.eatFood (index));
+    public double onEat(Critter critter, int index) {
+        return foods.eatFood (index);
     }
-
     @Override
-    public ArrayList<String> getFoodTypes() {
+    public ArrayList<Integer> getFoodTypes() {
         return foods.getFoodTypes ();
     }
 

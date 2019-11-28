@@ -3,13 +3,11 @@ package base;
 import cells.RiverWater;
 import critters.Critter;
 import enumLists.EnviroList;
-import graphics.WorldRender;
+import graphics.AdvancedWorldRenderer;
 
 import javax.swing.*;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Random;
-import java.util.Vector;
+import java.awt.*;
+import java.util.*;
 
 public class World {
     private ArrayList<ArrayList<Enviro>> map;
@@ -18,10 +16,12 @@ public class World {
     private ArrayList<Enviro> enviros = new ArrayList<> ();
     private BitSet[] cellId;
     private int enviroWidth = Enviro.width;
-    public WorldRender panel;
+    public AdvancedWorldRenderer panel;
     private int fullWidth;
     private int fullHeight;
     private Vector<Critter> critters = new Vector<Critter> ();
+    public ArrayDeque<Cell> cells = new ArrayDeque<> ();
+    public ArrayDeque<Cell> updates = new ArrayDeque<> ();
 
     public World() {
         int seed = new Random ().nextInt (10000);
@@ -35,13 +35,17 @@ public class World {
             critters.add (c2);
         }
         JFrame jf = new JFrame ();
-        jf.setSize (800, 830);
+        jf.setSize (new Dimension (getFullWidth () * 2, getFullHeight () * 2));
         jf.setVisible (true);
-        WorldRender jp = new WorldRender (this, jf);
+        AdvancedWorldRenderer jp = new AdvancedWorldRenderer (this, jf);
+        System.out.println ("F1");
         jf.add (jp);
+        jp.repaint ();
+        System.out.println ("F2");
         this.panel = jp;
+        System.out.println ("Finished");
         Time t = new Time (10, 20, this);
-        t.start ();
+        //t.start ();
     }
 
     public static void main(String[] args) {
@@ -127,11 +131,13 @@ public class World {
     }
 
     private void fillOcean() {
-        for (ArrayList<Enviro> row : map) {
-            for (int i = 0; i < row.size (); i++) {
-                if (row.get (i) == null) {
-                    row.set (i, new Enviro (20, 0, 20, "Ocean", this, r));
-                    row.get (i).generate ();
+        for (int i = 0; i < map.size (); i++) {
+            for (int j = 0; j < map.get (i).size (); j++) {
+                if (map.get (i).get (j) == null) {
+                    map.get (i).set (j, new Enviro (20, 0, 20, "Ocean", this, r));
+                    map.get (i).get (j).generate ();
+                    map.get (i).get (j).setX (j);
+                    map.get (i).get (j).setY (i);
                 }
             }
         }

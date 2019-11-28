@@ -59,8 +59,6 @@ public class Time extends Thread {
             }
         }
         System.out.println (w.getCritters ().size ());
-        System.out.println ("Repaint");
-        w.panel.repaint ();
         if (tot == 200) {
             JFrame jf = new JFrame ();
             jf.setSize (640, 630);
@@ -68,9 +66,8 @@ public class Time extends Thread {
             GeneRenderer jp = new GeneRenderer ();
             jf.add (jp);
             jp.render (w.getCritters ().get (15));
-            this.interrupt ();
         }
-        tot++;
+        //tot++;
     }
 
     public void cycle() {

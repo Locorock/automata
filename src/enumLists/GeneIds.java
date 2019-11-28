@@ -16,7 +16,7 @@ public enum GeneIds {
     FoodEff (8),
     BaseSpeed (8),
     Height (8),
-    DietType (8),
+    DietType (6),
     PropensionCluster (getClasses ("cells").length * 8);
 
 

@@ -10,7 +10,7 @@ public class FruitTree extends Tree {
     static final double growthRateB = 1.25;
     public FruitTree(String type, Enviro enviro) {
         super (type, enviro, growthRateA, true);
-        foods.addFood (growthRateB, "Fruit", 0, growthRateB * enviro.getHumidity ());
+        foods.addFood (growthRateB, 4, 0, growthRateB * enviro.getHumidity ());
     }
 
     @Override

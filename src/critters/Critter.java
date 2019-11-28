@@ -37,6 +37,7 @@ public class Critter {
     private double foodEff;
     private double waterEff;
     private double height;
+    private int dietType;
     private int timeToLive;
     private boolean alive = true;
     private double age = 0;
@@ -75,6 +76,7 @@ public class Critter {
         this.waterEff = shiftToRange (1, 1, code.getCardinality ("WaterEff"), 8);
         this.baseSpeed = shiftToRange (0.5, 4, code.getCardinality ("BaseSpeed"), 8);
         this.height = shiftToRange (0.5, 4, code.getCardinality ("Height"), 8);
+        this.dietType = code.getCardinality ("DietType");
         this.timeToLive = (int) (300 + (w.getR ().nextInt (50)) - (mateRate * 70));
         this.mateCooldown = (int) (10 * mateRate);
         BitSet set = this.code.getGene ("PropensionCluster");
@@ -110,10 +112,12 @@ public class Critter {
             return;
         }
         if (path == null || path.isEmpty ()) {
-            if (cell instanceof Food && ((Food) cell).getFoodAmount (0) > 1 && this.propensionMap.get (cell.getType ()) * this.hunger > 10) {
+            if (cell instanceof Food && this.propensionMap.get (cell.getType ()) * this.hunger > 10) {
+                Food food = (Food) cell;
                 //System.out.println ("Eating");
-                eatOnCell ();
-                return;
+                if (eatOnCell ()) {
+                    return;
+                }
             }
             if (cell instanceof FreshWater && this.propensionMap.get (cell.getType ()) * this.thirst > 10) {
                 //System.out.println ("Sippin that stuff");
@@ -310,8 +314,31 @@ public class Critter {
         return weights;
     }
 
-    public void eatOnCell() {
-        ((Food) cell).onEat (this, 0);
+    public boolean eatOnCell() {
+        Food food = ((Food) cell);
+        double maxMult = 0;
+        int max = -1;
+        for (int i = 0; i < food.getFoodTypes ().size (); i++) {
+            int type = food.getFoodTypes ().get (i);
+            double mult = 1;
+            if (dietType != type && type != 8) {
+                if (dietType + 1 == type || dietType - 1 == type) {
+                    mult = 0.5;
+                } else {
+                    mult = 0;
+                }
+            }
+            if (mult > maxMult) {
+                maxMult = mult;
+                max = i;
+            }
+        }
+        if (max != -1) {
+            this.setHunger (this.getHunger () - food.onEat (this, max) * maxMult);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public void drinkOnCell() {

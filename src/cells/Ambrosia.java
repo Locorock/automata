@@ -14,7 +14,7 @@ public class Ambrosia extends LowWater implements Food {
     public Ambrosia(String type, Enviro enviro) {
         super (type, enviro);
         foods = new Foods (enviro);
-        foods.addFood (2, "Ambrosia", 0, 100);
+        foods.addFood (2, 8, 0, 100);
     }
 
     @Override
@@ -25,7 +25,10 @@ public class Ambrosia extends LowWater implements Food {
 
     @Override
     public void onDrink(Critter critter) {
-        consume (critter);
+        critter.setAge (critter.getAge () - 5);
+        critter.setHunger (critter.getHunger () - foods.eatFood (0));
+        critter.setThirst (-5);
+        foods.eatFood (0);
     }
 
     @Override
@@ -34,14 +37,10 @@ public class Ambrosia extends LowWater implements Food {
     }
 
     @Override
-    public void onEat(Critter critter, int index) {
-        consume (critter);
-    }
-
-    public void consume(Critter critter) {
-        critter.setHunger (critter.getHunger () - foods.eatFood (0));
+    public double onEat(Critter critter, int index) {
         critter.setThirst (-5);
         critter.setAge (critter.getAge () - 5);
+        return foods.eatFood (0);
     }
 
     @Override
@@ -50,7 +49,7 @@ public class Ambrosia extends LowWater implements Food {
     }
 
     @Override
-    public ArrayList<String> getFoodTypes() {
+    public ArrayList<Integer> getFoodTypes() {
         return foods.getFoodTypes ();
     }
 

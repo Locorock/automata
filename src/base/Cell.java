@@ -12,7 +12,6 @@ public abstract class Cell {
     protected Random r;
     protected int x, y;
     protected int absX, absY;
-    protected boolean update = true;
     protected ArrayList<Critter> critters = new ArrayList<Critter> ();
 
     public Cell(String type, Enviro enviro) {
@@ -97,14 +96,4 @@ public abstract class Cell {
     }
 
     public abstract void tick();
-
-    public boolean getUpdate() {
-        return update;
-    }
-
-    ;
-
-    public void setUpdate(boolean update) {
-        this.update = update;
-    }
 }

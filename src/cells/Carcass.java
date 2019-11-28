@@ -16,7 +16,7 @@ public class Carcass extends Cell implements Food, Solid {
     public Carcass(String type, Enviro enviro, Critter c) {
         super (type, enviro);
         this.foods = new Foods (enviro);
-        foods.addFood (decayRate, "Meat", 0, 0);
+        foods.addFood (decayRate, 6, 0, 0);
         //this.foodAmounts.add(c.getBiomass()); TODO
     }
 
@@ -26,8 +26,8 @@ public class Carcass extends Cell implements Food, Solid {
         //decompose TODO
     }
 
-    public void onEat(Critter critter, int index) {
-        foods.eatFood (index);
+    public double onEat(Critter critter, int index) {
+        return foods.eatFood (index);
         //TODO
     }
 
@@ -38,7 +38,7 @@ public class Carcass extends Cell implements Food, Solid {
     }
 
     @Override
-    public ArrayList<String> getFoodTypes() {
+    public ArrayList<Integer> getFoodTypes() {
         return foods.getFoodTypes ();
     }
 
