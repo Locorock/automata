@@ -3,12 +3,13 @@ package cells;
 import base.Enviro;
 import base.Foods;
 import baseCells.Food;
+import baseCells.FreshWater;
 import baseCells.LowWater;
 import critters.Critter;
 
 import java.util.ArrayList;
 
-public class Ambrosia extends LowWater implements Food {
+public class Ambrosia extends LowWater implements Food, FreshWater {
     private Foods foods;
 
     public Ambrosia(String type, Enviro enviro) {

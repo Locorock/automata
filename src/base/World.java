@@ -12,7 +12,7 @@ import java.util.*;
 public class World {
     private ArrayList<ArrayList<Enviro>> map;
     private Random r;
-    private static final int size = 8;
+    private static final int size = 10;
     private ArrayList<Enviro> enviros = new ArrayList<> ();
     private BitSet[] cellId;
     private int enviroWidth = Enviro.width;

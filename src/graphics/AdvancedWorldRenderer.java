@@ -3,13 +3,19 @@ package graphics;
 import base.Cell;
 import base.Enviro;
 import base.World;
+import baseCells.Food;
+import baseCells.FreshWater;
+import cells.BirthingBoughs;
 import cells.RiverWater;
+import critters.Critter;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Vector;
 
 public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener, MouseListener, MouseWheelListener {
     private Enviro enviro;
@@ -19,20 +25,24 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     private World w;
     private JFrame f;
     private boolean init = false;
-    private int xSelected;
-    private int ySelected;
-    private Rectangle2D select;
+    private int selectionOriginX = 0;
+    private int selectionOriginY = 0;
+    private int selectionEndX = 0;
+    private int selectionEndY = 0;
+    private Rectangle2D selection;
     private int oldPosX = 0;
     private int oldPosY = 0;
     private int cameraPosX = 0;
     private int cameraPosY = 0;
     private int dragStartX = 0;
     private int dragStartY = 0;
+    private double renderThreshold = 5;
+    private AffineTransform translate;
+    private AffineTransform scale;
 
     public AdvancedWorldRenderer(World w, JFrame f) {
         this.w = w;
         this.f = f;
-        this.setSize (new Dimension (w.getMap ().size (), w.getMap ().get (0).size ()));
         this.wUnit = 32;
         this.addMouseListener (this);
         this.addMouseMotionListener (this);
@@ -43,9 +53,16 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     public void paintComponent(Graphics graphics) {
         super.paintComponent (graphics);
         Graphics2D g = (Graphics2D) graphics;
-        g.translate ((cameraPosX - dragStartX + oldPosX), (cameraPosY - dragStartY + oldPosY));
+
+        translate = AffineTransform.getTranslateInstance (translateOnScale (cameraPosX - dragStartX + oldPosX, true), translateOnScale (cameraPosY - dragStartY + oldPosY, false));
+        scale = AffineTransform.getScaleInstance (zoom, zoom);
+        g.transform (scale);
+        g.transform (translate);
+        g.setColor (Color.decode ("#0077E0"));
+        g.fill (g.getClipBounds ());
+
         System.out.println (zoom);
-        g.scale (zoom, zoom);
+
         ((ArrayList<ArrayList<Enviro>>) w.getMap ().clone ()).forEach (current -> {
             ((ArrayList<Enviro>) current.clone ()).forEach (currentEnviro -> {
                 Color c = null;
@@ -105,26 +122,51 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
                 g.setColor (c);
 
                 Rectangle2D r = new Rectangle (wUnit * currentEnviro.getX (), wUnit * currentEnviro.getY (), Math.round (wUnit), Math.round (wUnit));
-                g.fill (r);
-                g.setColor (Color.decode ("#0077E0"));
-                if (currentEnviro.isRiver ()) {
-                    Cell[][] grid = currentEnviro.getGrid ();
-                    for (Cell[] row : grid) {
-                        for (Cell cell : row) {
-                            if (cell instanceof RiverWater) {
-                                r = new Rectangle (2 * cell.getAbsX (), 2 * cell.getAbsY (), Math.round (2), Math.round (2));
+                if (isOnScreen (r, g)) {
+                    g.fill (r);
+                    g.setColor (Color.decode ("#0077E0"));
+                    if (currentEnviro.isRiver () && zoom <= renderThreshold) {
+                        Cell[][] grid = currentEnviro.getGrid ();
+                        for (Cell[] row : grid) {
+                            for (Cell cell : row) {
+                                if (cell instanceof RiverWater) {
+                                    r = new Rectangle (2 * cell.getAbsX (), 2 * cell.getAbsY (), Math.round (2), Math.round (2));
+                                    g.fill (r);
+                                }
+                            }
+                        }
+                    }
+                    if (currentEnviro.getBiome () != "Ocean" && zoom > renderThreshold) {
+                        Cell[][] grid = currentEnviro.getGrid ();
+                        for (Cell[] row : grid) {
+                            for (Cell cell : row) {
+                                g.setColor (Color.black);
+                                if (cell instanceof Food) {
+                                    g.setColor (Color.green);
+                                }
+                                if (cell instanceof FreshWater) {
+                                    g.setColor (Color.blue);
+                                }
+                                if (cell instanceof BirthingBoughs) {
+                                    g.setColor (Color.yellow);
+                                }
+                                r = new Rectangle (2 * cell.getAbsX (), 2 * cell.getAbsY (), 2, 2);
                                 g.fill (r);
                             }
                         }
                     }
                 }
+
             });
         });
+        ((Vector<Critter>) w.getCritters ().clone ()).forEach (current -> {
+            Rectangle2D r = new Rectangle (2 * current.getAbsx (), 2 * current.getAbsy (), 2, 2);
+            g.setColor (Color.red);
+            g.fill (r);
+        });
+
         System.out.println ("Done");
-        if (select != null) {
-            g.setColor (Color.yellow);
-            g.draw (select);
-        }
+        g.drawRect (selectionOriginX, selectionOriginY, selectionEndX - selectionOriginX, selectionEndY - selectionOriginY);
     }
 
     public Color getGreyscale(int num) {
@@ -136,9 +178,30 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
 
     public int translateOnScale(int coordinate, boolean horizontal) {
         if (horizontal) {
-            return (int) (coordinate - (this.getWidth () - (this.getWidth () / zoom)) / 2);
+            return (int) ((coordinate - (this.getWidth () - (this.getWidth () / zoom)) / 2));
         } else {
-            return (int) (coordinate - (this.getHeight () - (this.getHeight () / zoom)) / 2);
+            return (int) ((coordinate - (this.getHeight () - (this.getHeight () / zoom)) / 2));
+        }
+    }
+
+    public boolean isOnScreen(Rectangle2D rect, Graphics2D g) {
+        if (g.getClipBounds ().contains (new Point ((int) rect.getX (), (int) rect.getY ()))) {
+            return true;
+        }
+        if (g.getClipBounds ().contains (new Point ((int) (rect.getX () + rect.getWidth ()), (int) rect.getY ()))) {
+            return true;
+        }
+        if (g.getClipBounds ().contains (new Point ((int) rect.getX (), (int) (rect.getY () + rect.getHeight ())))) {
+            return true;
+        }
+        return g.getClipBounds ().contains (new Point ((int) (rect.getX () + rect.getWidth ()), (int) (rect.getY () + rect.getHeight ())));
+    }
+
+    public int getAbsoluteCoordinates(int coo, boolean horizontal) {
+        if (horizontal) {
+            return (int) (((-this.getWidth () / 2 + coo) / zoom) - oldPosX) + this.getWidth () / 2;
+        } else {
+            return (int) (((-this.getHeight () / 2 + coo) / zoom) - oldPosY) + this.getHeight () / 2;
         }
     }
 
@@ -151,11 +214,14 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     @Override
     public void mousePressed(MouseEvent mouseEvent) {
         if (SwingUtilities.isLeftMouseButton (mouseEvent)) {
-            xSelected = translateOnScale (mouseEvent.getX (), true);
-            ySelected = translateOnScale (mouseEvent.getY (), false);
+            selectionOriginX = getAbsoluteCoordinates (mouseEvent.getX (), true);
+            selectionOriginY = getAbsoluteCoordinates (mouseEvent.getY (), false);
+            selectionEndX = selectionOriginX;
+            selectionEndY = selectionOriginY;
+            repaint ();
         } else {
-            dragStartX = translateOnScale (mouseEvent.getX (), true);
-            dragStartY = translateOnScale (mouseEvent.getY (), false);
+            dragStartX = mouseEvent.getX ();
+            dragStartY = mouseEvent.getY ();
             cameraPosX = dragStartX;
             cameraPosY = dragStartY;
         }
@@ -164,14 +230,14 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     @Override
     public void mouseReleased(MouseEvent mouseEvent) {
         if (SwingUtilities.isLeftMouseButton (mouseEvent)) {
-            Rectangle2D selection = new Rectangle (xSelected, ySelected, translateOnScale (mouseEvent.getX (), true), translateOnScale (mouseEvent.getY (), false));
-            //EVALUATE CRITTERS IN SELECTED AREA
-            System.out.println (selection.getBounds2D ());
+
         } else {
-            cameraPosX = translateOnScale (mouseEvent.getX (), true);
-            cameraPosY = translateOnScale (mouseEvent.getY (), false);
             oldPosX = oldPosX + cameraPosX - dragStartX;
             oldPosY = oldPosY + cameraPosY - dragStartY;
+            cameraPosX = 0;
+            cameraPosY = 0;
+            dragStartX = 0;
+            dragStartY = 0;
         }
     }
 
@@ -188,17 +254,17 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     @Override
     public void mouseDragged(MouseEvent mouseEvent) {
         if (SwingUtilities.isLeftMouseButton (mouseEvent)) {
-            select = new Rectangle2D.Double (xSelected, ySelected, -xSelected + translateOnScale (mouseEvent.getX (), true), -ySelected + translateOnScale (mouseEvent.getY (), false));
+            selectionEndX = getAbsoluteCoordinates (mouseEvent.getX (), true);
+            selectionEndY = getAbsoluteCoordinates (mouseEvent.getY (), false);
         } else {
-            cameraPosX = translateOnScale (mouseEvent.getX (), true);
-            cameraPosY = translateOnScale (mouseEvent.getY (), false);
+            cameraPosX = mouseEvent.getX ();
+            cameraPosY = mouseEvent.getY ();
         }
         repaint ();
     }
 
     @Override
     public void mouseMoved(MouseEvent mouseEvent) {
-
     }
 
     @Override
@@ -207,12 +273,7 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
         if (zoom < 1) {
             zoom = 1;
         }
-        cameraPosX = translateOnScale (cameraPosX, true);
-        cameraPosY = translateOnScale (cameraPosY, false);
-        oldPosX = translateOnScale (oldPosX, true);
-        oldPosY = translateOnScale (oldPosY, false);
-        dragStartX = translateOnScale (dragStartX, true);
-        dragStartY = translateOnScale (dragStartY, false);
+        renderThreshold = 5 + (this.getWidth () * this.getHeight ()) / 520000;
         repaint ();
     }
 }

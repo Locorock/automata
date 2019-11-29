@@ -4,9 +4,9 @@ import java.util.Arrays;
 import java.util.List;
 
 public enum CellList {
-    Ambrosia (2, 16, true, Arrays.asList ("PrimSoup")),
+    Ambrosia (3, 16, true, Arrays.asList ("PrimSoup")),
     BerryBush (3, 4, true, Arrays.asList ("Forest", "Plains", "Taiga")),
-    BirthingBoughs (3, 0.5, true, Arrays.asList ("PrimSoup")),
+    BirthingBoughs (3, 1.5, true, Arrays.asList ("PrimSoup")),
     Cactus (3, 16, true, Arrays.asList ("Desert")),
     Carcass (4, 1, true, Arrays.asList ("")),
     Dirt (1, -1, true, Arrays.asList ("Forest", "Savanna", "Wetland", "Jungle", "Steppe")),

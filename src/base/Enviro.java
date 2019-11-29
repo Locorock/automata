@@ -123,7 +123,7 @@ public class Enviro {
         System.out.println (this.getBiome ());
         ArrayList<Integer> elements = new ArrayList<> ();
         ArrayList<String> grounds = new ArrayList<> ();
-        for (int i = 1; i < CellList.values ().length; i++) {
+        for (int i = 0; i < CellList.values ().length; i++) {
             CellList type = CellList.values ()[i];
             if (type.getBiomes ().contains (this.biome)) {
                 if (type.getPhase () == 1) {
@@ -160,7 +160,7 @@ public class Enviro {
 
         for (int i = 1; i <= 3; i++) {
             for (int j = 0; j < elements.size (); j++) {
-                CellList type = CellList.values ()[j + 1];
+                CellList type = CellList.values ()[j];
                 if (type.getPhase () == i) {
                     if (i == 1 && elements.get (j) > 0) {
                         if (grounds.size () < 2) {
@@ -179,6 +179,7 @@ public class Enviro {
                                 filled[y][x] = true;
                                 if (grid[y][x] instanceof Food) {
                                     ((Food) grid[y][x]).init ();
+                                    System.out.println ("Bug " + type.name ());
                                 }
                             } else {
                                 k--;
