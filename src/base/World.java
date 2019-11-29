@@ -19,6 +19,7 @@ public class World {
     public AdvancedWorldRenderer panel;
     private int fullWidth;
     private int fullHeight;
+    private Time t;
     private Vector<Critter> critters = new Vector<Critter> ();
     public ArrayDeque<Cell> cells = new ArrayDeque<> ();
     public ArrayDeque<Cell> updates = new ArrayDeque<> ();
@@ -44,8 +45,8 @@ public class World {
         System.out.println ("F2");
         this.panel = jp;
         System.out.println ("Finished");
-        Time t = new Time (10, 20, this);
-        //t.start ();
+        t = new Time (10, 20, this);
+        t.start ();
     }
 
     public static void main(String[] args) {
@@ -541,5 +542,13 @@ public class World {
 
     public void setCritters(Vector<Critter> critters) {
         this.critters = critters;
+    }
+
+    public Time getT() {
+        return t;
+    }
+
+    public void setT(Time t) {
+        this.t = t;
     }
 }

@@ -5,9 +5,11 @@ import base.Enviro;
 import base.World;
 import baseCells.Food;
 import baseCells.FreshWater;
-import cells.BirthingBoughs;
 import cells.RiverWater;
 import critters.Critter;
+import critters.GenCode;
+import enumLists.CellList;
+import enumLists.GeneIds;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,6 +17,7 @@ import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Vector;
 
 public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener, MouseListener, MouseWheelListener {
@@ -37,6 +40,9 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     private int dragStartX = 0;
     private int dragStartY = 0;
     private double renderThreshold = 5;
+    public int totalAmount = 0;
+    public double lastCycleTime = 0;
+    private int count = 0;
     private AffineTransform translate;
     private AffineTransform scale;
 
@@ -60,8 +66,6 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
         g.transform (translate);
         g.setColor (Color.decode ("#0077E0"));
         g.fill (g.getClipBounds ());
-
-        System.out.println (zoom);
 
         ((ArrayList<ArrayList<Enviro>>) w.getMap ().clone ()).forEach (current -> {
             ((ArrayList<Enviro>) current.clone ()).forEach (currentEnviro -> {
@@ -147,9 +151,6 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
                                 if (cell instanceof FreshWater) {
                                     g.setColor (Color.blue);
                                 }
-                                if (cell instanceof BirthingBoughs) {
-                                    g.setColor (Color.yellow);
-                                }
                                 r = new Rectangle (2 * cell.getAbsX (), 2 * cell.getAbsY (), 2, 2);
                                 g.fill (r);
                             }
@@ -164,9 +165,10 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
             g.setColor (Color.red);
             g.fill (r);
         });
-
-        System.out.println ("Done");
         g.drawRect (selectionOriginX, selectionOriginY, selectionEndX - selectionOriginX, selectionEndY - selectionOriginY);
+        g.drawString (String.valueOf (count), selectionOriginX, selectionOriginY);
+        g.drawString (String.valueOf (totalAmount), (int) g.getClipBounds ().getX () + 120, (int) g.getClipBounds ().getY () + 40);
+        g.drawString (String.valueOf (lastCycleTime), (int) g.getClipBounds ().getX () + 40, (int) g.getClipBounds ().getY () + 40);
     }
 
     public Color getGreyscale(int num) {
@@ -220,6 +222,13 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
             selectionEndY = selectionOriginY;
             repaint ();
         } else {
+            if (SwingUtilities.isMiddleMouseButton (mouseEvent)) {
+                if (!w.getT ().isInterrupted ()) {
+                    w.getT ().run ();
+                } else {
+                    w.getT ().interrupt ();
+                }
+            }
             dragStartX = mouseEvent.getX ();
             dragStartY = mouseEvent.getY ();
             cameraPosX = dragStartX;
@@ -230,6 +239,30 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     @Override
     public void mouseReleased(MouseEvent mouseEvent) {
         if (SwingUtilities.isLeftMouseButton (mouseEvent)) {
+            selectionEndX = getAbsoluteCoordinates (mouseEvent.getX (), true);
+            selectionEndY = getAbsoluteCoordinates (mouseEvent.getY (), false);
+            count = 0;
+            int[] traits = new int[32];
+            Arrays.fill (traits, 0);
+            for (Critter current : w.getCritters ()) {
+                if (current.getAbsx () * wUnit / 16 < selectionEndX && current.getAbsy () * wUnit / 16 < selectionEndY && current.getAbsx () * wUnit / 16 > selectionOriginX && current.getAbsy () * wUnit / 16 > selectionOriginY) {
+                    count++;
+                    GenCode gc = current.getCode ();
+                    for (int i = 0; i < 9; i++) {
+                        traits[i] += gc.getGene (GeneIds.values ()[i].name ()).cardinality ();
+                    }
+                    for (int i = 0; i < CellList.values ().length - 1; i++) {
+                        traits[i + 9] += gc.getGene ("PropensionCluster").get (i * 8, i * 8 + 8).cardinality ();
+                    }
+                }
+            }
+            for (int i = 0; i < traits.length; i++) {
+                traits[i] /= count;
+            }
+            JFrame jf = new JFrame ();
+            jf.setSize (600, 30 * 32);
+            jf.setVisible (true);
+            jf.add (new PopulationRenderer (traits));
 
         } else {
             oldPosX = oldPosX + cameraPosX - dragStartX;
@@ -239,6 +272,7 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
             dragStartX = 0;
             dragStartY = 0;
         }
+        repaint ();
     }
 
     @Override

@@ -35,13 +35,15 @@ public class Time extends Thread {
                 double elapsed = 0;
                 long start = System.nanoTime ();
                 tick ();
+                w.panel.repaint ();
                 ticks++;
                 if (ticks >= cycleSize) {
                     cycle ();
                     ticks = 0;
                 }
                 elapsed = (double) (System.nanoTime () - start) / 1000000;
-                System.out.println ("Ceeclo che è durato " + elapsed);
+                w.panel.lastCycleTime = elapsed;
+                w.panel.totalAmount = w.getCritters ().size ();
                 if (elapsed < tickSize)
                     sleep ((long) tickSize - (long) elapsed);
             } catch (InterruptedException e) {
@@ -58,7 +60,6 @@ public class Time extends Thread {
                 w.getCritters ().remove (c);
             }
         }
-        System.out.println (w.getCritters ().size ());
         if (tot == 200) {
             JFrame jf = new JFrame ();
             jf.setSize (640, 630);
@@ -74,7 +75,6 @@ public class Time extends Thread {
         generateEvents ();
         cycleEvents ();
         cycleWorld ();
-        w.panel.repaint ();
         //w.panel2.repaint ();
     }
 
@@ -108,7 +108,7 @@ public class Time extends Thread {
                 }
             }
         }
-        System.out.println ("Ciclo generazione: " + (double) (System.nanoTime () - start) / 1000000);
+        //System.out.println ("Ciclo generazione: " + (double) (System.nanoTime () - start) / 1000000);
     }
 
     public void cycleEvents() {
@@ -121,7 +121,7 @@ public class Time extends Thread {
                 i--;
             }
         }
-        System.out.println ("Ciclo eventi: " + (double) (System.nanoTime () - start) / 1000000);
+        //System.out.println ("Ciclo eventi: " + (double) (System.nanoTime () - start) / 1000000);
     }
 
     public void cycleWorld() {
@@ -131,7 +131,7 @@ public class Time extends Thread {
                 cycleEnviro (e);
             }
         }
-        System.out.println ("Ciclo celle: " + (double) (System.nanoTime () - start) / 1000000);
+        //System.out.println ("Ciclo celle: " + (double) (System.nanoTime () - start) / 1000000);
     }
 
     public void cycleEnviro(Enviro e) {
