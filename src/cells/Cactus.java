@@ -1,8 +1,8 @@
 package cells;
 
+import base.Critter;
 import base.Enviro;
 import baseCells.Tree;
-import critters.Critter;
 
 public class Cactus extends Tree {
     static final double growthRate = 0.5;

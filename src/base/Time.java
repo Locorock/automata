@@ -1,6 +1,5 @@
 package base;
 
-import critters.Critter;
 import enumLists.EventList;
 import graphics.GeneRenderer;
 
@@ -19,6 +18,7 @@ public class Time extends Thread {
     private int tot = 0;
     private World w;
     private int seed;
+    public boolean running;
 
     public Time(double tickSize, int cycleSize, World w) {
         this.tickSize = tickSize;
@@ -31,23 +31,31 @@ public class Time extends Thread {
     @Override
     public void run() {
         while (isAlive () && !isInterrupted ()) {
-            try {
-                double elapsed = 0;
-                long start = System.nanoTime ();
-                tick ();
-                w.panel.repaint ();
-                ticks++;
-                if (ticks >= cycleSize) {
-                    cycle ();
-                    ticks = 0;
+            if (running) {
+                try {
+                    double elapsed = 0;
+                    long start = System.nanoTime ();
+                    tick ();
+                    w.panel.repaint ();
+                    ticks++;
+                    if (ticks >= cycleSize) {
+                        cycle ();
+                        ticks = 0;
+                    }
+                    elapsed = (double) (System.nanoTime () - start) / 1000000;
+                    w.panel.lastCycleTime = elapsed;
+                    w.panel.totalAmount = w.getCritters ().size ();
+                    if (elapsed < tickSize)
+                        sleep ((long) tickSize - (long) elapsed);
+                } catch (InterruptedException e) {
+                    e.printStackTrace ();
                 }
-                elapsed = (double) (System.nanoTime () - start) / 1000000;
-                w.panel.lastCycleTime = elapsed;
-                w.panel.totalAmount = w.getCritters ().size ();
-                if (elapsed < tickSize)
-                    sleep ((long) tickSize - (long) elapsed);
-            } catch (InterruptedException e) {
-                e.printStackTrace ();
+            } else {
+                try {
+                    Thread.sleep (500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace ();
+                }
             }
         }
     }

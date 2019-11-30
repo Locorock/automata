@@ -1,12 +1,12 @@
 package cells;
 
+import base.Critter;
 import base.Enviro;
 import baseCells.Tree;
-import critters.Critter;
 
 public class PlainsTree extends Tree {
     public PlainsTree(String type, Enviro enviro) {
-        super (type, enviro, 0.8, true);
+        super (type, enviro, 1, true);
     }
 
     @Override

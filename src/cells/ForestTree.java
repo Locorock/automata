@@ -1,12 +1,12 @@
 package cells;
 
+import base.Critter;
 import base.Enviro;
 import baseCells.Tree;
-import critters.Critter;
 
 public class ForestTree extends Tree {
     public ForestTree(String type, Enviro enviro) {
-        super (type, enviro, 1, true);
+        super (type, enviro, 1.5, true);
     }
 
     @Override

@@ -20,7 +20,7 @@ public class Meteor extends Event {
                 try {
                     grid[i][j] = new RockySoil ("RockySoil", enviro);
                     grid[i][j].setAbsX (cell.getAbsX ());
-                    grid[i][j].setAbsX (cell.getAbsY ());
+                    grid[i][j].setAbsY (cell.getAbsY ());
                 } catch (ClassCastException e) {
                     e.printStackTrace ();
                 }

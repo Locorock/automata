@@ -14,7 +14,7 @@ public abstract class Living extends Cell implements Solid {
         if (averageTTL != -1) {
             this.timeToLive = (int) Math.abs (averageTTL + (r.nextGaussian () * (averageTTL / 2)));
         } else {
-            this.timeToLive = -1;
+            //this.timeToLive = -1; no dying for you now
         }
         this.alive = true;
     }

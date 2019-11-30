@@ -1,12 +1,12 @@
 package cells;
 
 import base.Cell;
+import base.Critter;
 import base.Enviro;
 import baseCells.Solid;
-import critters.Critter;
 
 public class BirthingBoughs extends Cell implements Solid {
-    int cooldown = 5;
+    int cooldown = 2;
     int elapsed = 0;
 
     public BirthingBoughs(String type, Enviro enviro) {

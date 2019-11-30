@@ -1,11 +1,11 @@
 package graphics;
 
+import base.Critter;
 import base.Enviro;
 import base.World;
 import baseCells.Food;
 import baseCells.FreshWater;
 import cells.SaltWater;
-import critters.Critter;
 
 import javax.swing.*;
 import java.awt.*;

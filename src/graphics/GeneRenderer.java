@@ -1,7 +1,7 @@
 package graphics;
 
-import critters.Critter;
-import critters.GenCode;
+import base.Critter;
+import base.GenCode;
 import enumLists.CellList;
 import enumLists.GeneIds;
 

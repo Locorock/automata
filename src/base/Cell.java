@@ -1,7 +1,5 @@
 package base;
 
-import critters.Critter;
-
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Random;

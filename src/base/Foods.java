@@ -15,10 +15,10 @@ public class Foods {
     }
 
     public void addFood(double growthRate, int foodType, double foodAmount, double maxAmount) {
-        growthRates.add (growthRate);
+        growthRates.add (growthRate * 1.5);
         foodTypes.add (foodType);
         foodAmounts.add (foodAmount);
-        maxAmounts.add (maxAmount / 3); //test
+        maxAmounts.add (maxAmount / 2); //test
         size++;
     }
 

@@ -1,11 +1,11 @@
 package cells;
 
+import base.Critter;
 import base.Enviro;
 import baseCells.Bush;
-import critters.Critter;
 
 public class Shrub extends Bush {
-    static final double growthRate = 0.75;
+    static final double growthRate = 1;
     public Shrub(String type, Enviro enviro) {
         super (type, enviro, 1);
     }

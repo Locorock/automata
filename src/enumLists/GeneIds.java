@@ -17,7 +17,8 @@ public enum GeneIds {
     BaseSpeed (8),
     Height (8),
     DietType (6),
-    PropensionCluster ((getClasses ("cells").length + 1) * 8);
+    PropensionCluster ((getClasses ("cells").length + 1) * 8),
+    CrossingCluster ((getClasses ("cells").length + 1) * 8);
 
 
 

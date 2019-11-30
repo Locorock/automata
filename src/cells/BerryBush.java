@@ -1,14 +1,14 @@
 package cells;
 
+import base.Critter;
 import base.Enviro;
 import baseCells.Bush;
-import critters.Critter;
 
 public class BerryBush extends Bush {
-    static final double growthRateA = 0.5;
-    static final double growthRateB = 1;
+    static final double growthRateA = 1;
+    static final double growthRateB = 6;
     public BerryBush(String type, Enviro enviro) {
-        super (type, enviro, growthRateA * enviro.getHumidity ());
+        super (type, enviro, growthRateA);
         foods.addFood (growthRateB, 2, 0, growthRateB * enviro.getHumidity ());
     }
 

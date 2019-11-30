@@ -1,11 +1,11 @@
 package cells;
 
+import base.Critter;
 import base.Enviro;
 import base.Foods;
 import baseCells.Food;
 import baseCells.FreshWater;
 import baseCells.LowWater;
-import critters.Critter;
 
 import java.util.ArrayList;
 
@@ -26,20 +26,11 @@ public class Ambrosia extends LowWater implements Food, FreshWater {
 
     @Override
     public void onDrink(Critter critter) {
-        critter.setAge (critter.getAge () - 5);
-        critter.setHunger (critter.getHunger () - foods.eatFood (0));
         critter.setThirst (-5);
-        foods.eatFood (0);
-    }
-
-    @Override
-    public double getDrinkAmount() {
-        return foods.getFoodAmount (0);
     }
 
     @Override
     public double onEat(Critter critter, int index) {
-        critter.setThirst (-5);
         critter.setAge (critter.getAge () - 5);
         return foods.eatFood (0);
     }

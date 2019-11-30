@@ -1,9 +1,9 @@
 package cells;
 
 import base.Cell;
+import base.Critter;
 import base.Enviro;
 import baseCells.LowWater;
-import critters.Critter;
 import enumLists.CellList;
 
 import java.util.Random;
@@ -21,11 +21,6 @@ public class Puddle extends LowWater {
         if ((r.nextInt () * enviro.getTemperature ()) % 1000 == 0 || CellList.valueOf (previous.getType ()).isPermeable () && r.nextInt () % 4 == 0) {
             enviro.replaceWith (this, previous);
         }
-    }
-
-    @Override
-    public double getDrinkAmount() {
-        return 50;
     }
 
     @Override

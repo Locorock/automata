@@ -1,11 +1,11 @@
 package cells;
 
+import base.Critter;
 import base.Enviro;
 import baseCells.Grass;
-import critters.Critter;
 
 public class LowGrass extends Grass {
-    public static double growthRate = 0.10;
+    public static double growthRate = 0.25;
     public LowGrass(String type, Enviro enviro) {
         super (type, enviro, growthRate);
     }

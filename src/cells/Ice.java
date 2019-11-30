@@ -1,9 +1,9 @@
 package cells;
 
 import base.Cell;
+import base.Critter;
 import base.Enviro;
 import baseCells.Solid;
-import critters.Critter;
 
 public class Ice extends Cell implements Solid {
     public Ice(String type, Enviro enviro) {

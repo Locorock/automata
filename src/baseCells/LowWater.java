@@ -1,8 +1,8 @@
 package baseCells;
 
 import base.Cell;
+import base.Critter;
 import base.Enviro;
-import critters.Critter;
 
 public abstract class LowWater extends Cell implements FreshWater, Solid {
     public LowWater(String type, Enviro enviro) {

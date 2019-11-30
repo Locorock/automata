@@ -1,9 +1,9 @@
 package cells;
 
+import base.Critter;
 import base.Enviro;
 import baseCells.FreshWater;
 import baseCells.LowWater;
-import critters.Critter;
 
 public class SwampWater extends LowWater implements FreshWater {
     public SwampWater(String type, Enviro enviro) {
@@ -13,16 +13,11 @@ public class SwampWater extends LowWater implements FreshWater {
     @Override
     public void onDrink(Critter critter) {
         super.onDrink (critter);
-        critter.setAge (critter.getAge () + 0.1);
+        critter.setAge (critter.getAge () + 0.05 * critter.getMateRate ());
     }
 
     @Override
     public void onPassage(Critter critter) {
         super.onPassage (critter);
-    }
-
-    @Override
-    public double getDrinkAmount() {
-        return 50;
     }
 }

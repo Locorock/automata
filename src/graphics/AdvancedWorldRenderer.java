@@ -1,13 +1,9 @@
 package graphics;
 
-import base.Cell;
-import base.Enviro;
-import base.World;
+import base.*;
 import baseCells.Food;
 import baseCells.FreshWater;
 import cells.RiverWater;
-import critters.Critter;
-import critters.GenCode;
 import enumLists.CellList;
 import enumLists.GeneIds;
 
@@ -43,6 +39,7 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     public int totalAmount = 0;
     public double lastCycleTime = 0;
     private int count = 0;
+    private Cell cellSelected;
     private AffineTransform translate;
     private AffineTransform scale;
 
@@ -146,7 +143,8 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
                             for (Cell cell : row) {
                                 g.setColor (Color.black);
                                 if (cell instanceof Food) {
-                                    g.setColor (Color.green);
+                                    Food f = ((Food) cell);
+                                    g.setColor (getGreyscale (f.getFoodAmount (0) * 20));
                                 }
                                 if (cell instanceof FreshWater) {
                                     g.setColor (Color.blue);
@@ -162,19 +160,38 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
         });
         ((Vector<Critter>) w.getCritters ().clone ()).forEach (current -> {
             Rectangle2D r = new Rectangle (2 * current.getAbsx (), 2 * current.getAbsy (), 2, 2);
-            g.setColor (Color.red);
+            if (current.getDietType () < 6) {
+                g.setColor (Color.red);
+            }
+            if (current.getDietType () < 4) {
+                g.setColor (Color.orange);
+            }
+            if (current.getDietType () < 2) {
+                g.setColor (Color.pink);
+            }
             g.fill (r);
         });
         g.drawRect (selectionOriginX, selectionOriginY, selectionEndX - selectionOriginX, selectionEndY - selectionOriginY);
+        g.setFont (g.getFont ().deriveFont ((float) (g.getFont ().getSize () / zoom)));
         g.drawString (String.valueOf (count), selectionOriginX, selectionOriginY);
-        g.drawString (String.valueOf (totalAmount), (int) g.getClipBounds ().getX () + 120, (int) g.getClipBounds ().getY () + 40);
-        g.drawString (String.valueOf (lastCycleTime), (int) g.getClipBounds ().getX () + 40, (int) g.getClipBounds ().getY () + 40);
+        g.drawString (String.valueOf (totalAmount), (int) (g.getClipBounds ().getX () + 120 / zoom), (int) (g.getClipBounds ().getY () + 40 / zoom));
+        g.drawString (String.valueOf (lastCycleTime), (int) (g.getClipBounds ().getX () + 40 / zoom), (int) (g.getClipBounds ().getY () + 40 / zoom));
+        if (cellSelected != null) {
+            g.drawString (String.valueOf (cellSelected.type), (int) (g.getClipBounds ().getX () + 40 / zoom), (int) (g.getClipBounds ().getY () + 80 / zoom));
+            if (cellSelected instanceof Food) {
+                Food f = (Food) cellSelected;
+                g.drawString (f.getFoodAmount (0) + "", (int) (g.getClipBounds ().getX () + 120 / zoom), (int) (g.getClipBounds ().getY () + 80 / zoom));
+            }
+        }
+        g.drawString (String.valueOf (Critter.fDeaths), (int) (g.getClipBounds ().getX () + 400 / zoom), (int) (g.getClipBounds ().getY () + 40 / zoom));
+        g.drawString (String.valueOf (Critter.tDeaths), (int) (g.getClipBounds ().getX () + 440 / zoom), (int) (g.getClipBounds ().getY () + 40 / zoom));
+        g.drawString (String.valueOf (Critter.aDeaths), (int) (g.getClipBounds ().getX () + 480 / zoom), (int) (g.getClipBounds ().getY () + 40 / zoom));
     }
 
-    public Color getGreyscale(int num) {
-        float h = Color.RGBtoHSB (0, num, 0, null)[0];
-        float s = Color.RGBtoHSB (0, num, 0, null)[1];
-        float b = Color.RGBtoHSB (0, num, 0, null)[2];
+    public Color getGreyscale(double num) {
+        float h = Color.RGBtoHSB (0, (int) num, 0, null)[0];
+        float s = Color.RGBtoHSB (0, (int) num, 0, null)[1];
+        float b = Color.RGBtoHSB (0, (int) num, 0, null)[2];
         return Color.getHSBColor (h, s, b);
     }
 
@@ -201,15 +218,22 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
 
     public int getAbsoluteCoordinates(int coo, boolean horizontal) {
         if (horizontal) {
-            return (int) (((-this.getWidth () / 2 + coo) / zoom) - oldPosX) + this.getWidth () / 2;
+            return (int) ((((-this.getWidth () / 2.0 + coo) / zoom) - oldPosX) + (this.getWidth () / 2.0));
         } else {
-            return (int) (((-this.getHeight () / 2 + coo) / zoom) - oldPosY) + this.getHeight () / 2;
+            return (int) ((((-this.getHeight () / 2.0 + coo) / zoom) - oldPosY) + (this.getHeight () / 2.0));
         }
     }
 
     @Override
     public void mouseClicked(MouseEvent mouseEvent) {
-
+        if (SwingUtilities.isRightMouseButton (mouseEvent) && mouseEvent.isControlDown ()) {
+            int x = getAbsoluteCoordinates (mouseEvent.getX (), true);
+            int y = getAbsoluteCoordinates (mouseEvent.getY (), false);
+            System.out.println ("Conversion");
+            System.out.println (mouseEvent.getX () + " - " + mouseEvent.getY ());
+            System.out.println (x + " - " + y);
+            this.cellSelected = w.getAbsCell ((int) Math.round ((x - 1) / 2.0), (int) Math.round ((y - 1) / 2.0));
+        }
     }
 
 
@@ -223,11 +247,7 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
             repaint ();
         } else {
             if (SwingUtilities.isMiddleMouseButton (mouseEvent)) {
-                if (!w.getT ().isInterrupted ()) {
-                    w.getT ().run ();
-                } else {
-                    w.getT ().interrupt ();
-                }
+                w.getT ().running = !w.getT ().running;
             }
             dragStartX = mouseEvent.getX ();
             dragStartY = mouseEvent.getY ();
@@ -238,13 +258,14 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
 
     @Override
     public void mouseReleased(MouseEvent mouseEvent) {
-        if (SwingUtilities.isLeftMouseButton (mouseEvent)) {
+        if (SwingUtilities.isLeftMouseButton (mouseEvent) && !mouseEvent.isControlDown ()) {
             selectionEndX = getAbsoluteCoordinates (mouseEvent.getX (), true);
             selectionEndY = getAbsoluteCoordinates (mouseEvent.getY (), false);
             count = 0;
-            int[] traits = new int[32];
+            int[] traits = new int[35];
+            ArrayList<Critter> critters = new ArrayList<> ();
             Arrays.fill (traits, 0);
-            for (Critter current : w.getCritters ()) {
+            for (Critter current : (Vector<Critter>) w.getCritters ().clone ()) {
                 if (current.getAbsx () * wUnit / 16 < selectionEndX && current.getAbsy () * wUnit / 16 < selectionEndY && current.getAbsx () * wUnit / 16 > selectionOriginX && current.getAbsy () * wUnit / 16 > selectionOriginY) {
                     count++;
                     GenCode gc = current.getCode ();
@@ -254,15 +275,21 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
                     for (int i = 0; i < CellList.values ().length - 1; i++) {
                         traits[i + 9] += gc.getGene ("PropensionCluster").get (i * 8, i * 8 + 8).cardinality ();
                     }
+                    traits[32] = (int) current.getHunger ();
+                    traits[33] = (int) current.getThirst ();
+                    traits[34] = current.getGender ();
+                    critters.add (current);
                 }
             }
-            for (int i = 0; i < traits.length; i++) {
-                traits[i] /= count;
+            if (count != 0) {
+                for (int i = 0; i < traits.length; i++) {
+                    traits[i] /= count;
+                }
             }
             JFrame jf = new JFrame ();
             jf.setSize (600, 30 * 32);
             jf.setVisible (true);
-            jf.add (new PopulationRenderer (traits));
+            jf.add (new PopulationRenderer (traits, critters));
 
         } else {
             oldPosX = oldPosX + cameraPosX - dragStartX;

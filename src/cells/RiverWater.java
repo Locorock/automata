@@ -1,10 +1,10 @@
 package cells;
 
 import base.Cell;
+import base.Critter;
 import base.Enviro;
 import baseCells.FreshWater;
 import baseCells.Solid;
-import critters.Critter;
 
 public class RiverWater extends Cell implements Solid, FreshWater {
     public RiverWater(String type, Enviro enviro) {
@@ -19,11 +19,6 @@ public class RiverWater extends Cell implements Solid, FreshWater {
     @Override
     public void onDrink(Critter critter) {
         critter.setThirst (critter.getThirst () - 3);
-    }
-
-    @Override
-    public double getDrinkAmount() {
-        return 50;
     }
 
     @Override

@@ -1,9 +1,9 @@
 package cells;
 
 import base.Cell;
+import base.Critter;
 import base.Enviro;
 import baseCells.Solid;
-import critters.Critter;
 
 public class SaltWater extends Cell implements Solid {
     public SaltWater(String type, Enviro enviro) {
@@ -16,6 +16,6 @@ public class SaltWater extends Cell implements Solid {
 
     @Override
     public void onPassage(Critter critter) {
-        critter.setSpeed (critter.getBaseSpeed () * 0.1);
+        critter.setSpeed (critter.getBaseSpeed () * 0.5);
     }
 }

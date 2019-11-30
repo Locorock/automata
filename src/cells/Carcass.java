@@ -1,11 +1,11 @@
 package cells;
 
 import base.Cell;
+import base.Critter;
 import base.Enviro;
 import base.Foods;
 import baseCells.Food;
 import baseCells.Solid;
-import critters.Critter;
 
 import java.util.ArrayList;
 

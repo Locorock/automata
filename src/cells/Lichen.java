@@ -1,8 +1,8 @@
 package cells;
 
+import base.Critter;
 import base.Enviro;
 import baseCells.Grass;
-import critters.Critter;
 
 public class Lichen extends Grass {
     public static double growthRate = 0.05;

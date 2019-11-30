@@ -1,7 +1,6 @@
 package base;
 
 import cells.RiverWater;
-import critters.Critter;
 import enumLists.EnviroList;
 import graphics.AdvancedWorldRenderer;
 
@@ -31,7 +30,7 @@ public class World {
         this.fullHeight = this.map.size () * enviroWidth;
         this.fullWidth = this.map.get (0).size () * enviroWidth;
         Critter.weights = new double[getFullHeight ()][getFullWidth ()];
-        for (int i = 0; i < 15; i++) {
+        for (int i = 0; i < 0; i++) {
             Critter c2 = new Critter ("Katrina", this, 15 * 16 + 5, 15 * 16 + 5);
             critters.add (c2);
         }
@@ -39,13 +38,11 @@ public class World {
         jf.setSize (new Dimension (getFullWidth () * 2, getFullHeight () * 2));
         jf.setVisible (true);
         AdvancedWorldRenderer jp = new AdvancedWorldRenderer (this, jf);
-        System.out.println ("F1");
         jf.add (jp);
         jp.repaint ();
-        System.out.println ("F2");
         this.panel = jp;
         System.out.println ("Finished");
-        t = new Time (10, 20, this);
+        t = new Time (2, 20, this);
         t.start ();
     }
 

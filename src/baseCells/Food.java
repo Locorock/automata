@@ -1,6 +1,6 @@
 package baseCells;
 
-import critters.Critter;
+import base.Critter;
 
 import java.util.ArrayList;
 

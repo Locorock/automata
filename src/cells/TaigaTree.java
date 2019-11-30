@@ -1,12 +1,12 @@
 package cells;
 
+import base.Critter;
 import base.Enviro;
 import baseCells.Tree;
-import critters.Critter;
 
 public class TaigaTree extends Tree {
     public TaigaTree(String type, Enviro enviro) {
-        super (type, enviro, 0.5, true);
+        super (type, enviro, 1, true);
     }
 
     @Override

@@ -1,9 +1,9 @@
 package trashBin;
 
+import base.Critter;
 import base.Enviro;
 import baseCells.Living;
 import baseCells.Solid;
-import critters.Critter;
 
 public class Seed extends Living implements Solid {
     public Seed(String type, Enviro enviro) {

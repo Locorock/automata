@@ -195,6 +195,7 @@ public class Enviro {
                 grid[i][j].setY (i);
             }
         }
+        printGrid ();
     }
 
     public void printGrid() {

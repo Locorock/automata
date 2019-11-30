@@ -1,8 +1,8 @@
 package baseCells;
 
+import base.Critter;
 import base.Enviro;
 import base.Foods;
-import critters.Critter;
 
 import java.util.ArrayList;
 

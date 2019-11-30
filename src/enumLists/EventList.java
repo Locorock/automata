@@ -6,7 +6,7 @@ import java.util.List;
 public enum EventList {
     Earthquake (20000, 0, 2, 1, 1, 0, null),
     Meteor (1000000, 0, 3, 1, 1.5, 0, null),
-    Precipitation (2500, 1, 3, 3, 1.5, 1.5, null),
+    Precipitation (1500, 1, 3, 3, 1.5, 1.5, null),
     Storm (5000, 1, 4, 2, 1.5, 1, null),
     Volcano (50000, 0, 3, 2, 1.5, 1, Arrays.asList ("Volcano"));
 

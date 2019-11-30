@@ -1,4 +1,4 @@
-package critters;
+package base;
 
 import enumLists.GeneIds;
 
@@ -19,7 +19,7 @@ public class GenCode {
             }
         }
         for (int i = 0; i < code.size (); i++) {
-            if (r.nextInt (100) == 0) {
+            if (r.nextInt (1000) == 0) {
                 code.flip (i);
             }
         }
@@ -40,6 +40,20 @@ public class GenCode {
     public int getCardinality(String name) {
         GeneIds gi = GeneIds.valueOf (name);
         return code.get (gi.getOffset (), gi.getOffset () + gi.getSize ()).cardinality ();
+    }
+
+    public static long convert(BitSet bits) {
+        long value = 0L;
+        for (int i = 0; i < bits.length (); ++i) {
+            value += bits.get (i) ? (1L << i) : 0L;
+        }
+        return value;
+    }
+
+    public int getDecimal(String name) {
+        GeneIds gi = GeneIds.valueOf (name);
+        return (int) convert (code.get (gi.getOffset (), gi.getOffset () + gi.getSize ()));
+
     }
 
     public int getHammingDiff(String name, BitSet b) {
