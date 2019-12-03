@@ -5,7 +5,7 @@ import base.Enviro;
 import baseCells.Grass;
 
 public class LowGrass extends Grass {
-    public static double growthRate = 0.25;
+    public static double growthRate = 0.35;
     public LowGrass(String type, Enviro enviro) {
         super (type, enviro, growthRate);
     }

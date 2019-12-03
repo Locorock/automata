@@ -13,7 +13,7 @@ public class RiverWater extends Cell implements Solid, FreshWater {
 
     @Override
     public void onPassage(Critter critter) {
-        critter.setSpeed (critter.getBaseSpeed () * 0.4);
+        critter.setSpeed (critter.getBaseSpeed () * 0.4 + critter.getWebbedFeet ());
     }
 
     @Override

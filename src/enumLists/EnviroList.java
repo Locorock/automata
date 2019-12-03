@@ -1,16 +1,18 @@
 package enumLists;
 
 public enum EnviroList {
-    Desert (40, 100, 0, 20, 30),
-    Forest (0, 35, 20, 70, 40),
-    Glacial (-30, -10, 0, 20, 40),
-    Jungle (35, 70, 30, 100, 30),
-    Plains (0, 40, 10, 50, 60),
-    Savanna (35, 50, 0, 30, 50),
-    Steppe (10, 40, 0, 20, 200),
-    Taiga (-10, 10, 20, 60, 50),
-    Tundra (-10, 10, 0, 20, 40),
-    Wetland (10, 40, 40, 100, 40);
+    Desert (60, 110, 0, 20, 30),
+    Canyon (75, 110, 20, 50, 30),
+    Forest (30, 60, 40, 65, 40),
+    Glacial (0, 15, 0, 15, 40),
+    Jungle (50, 110, 50, 110, 30),
+    Plains (30, 65, 20, 50, 60),
+    Savanna (45, 75, 10, 55, 50),
+    Steppe (30, 60, 0, 20, 200),
+    Taiga (10, 30, 25, 70, 50),
+    Tundra (0, 30, 0, 25, 40),
+    Wetland (10, 50, 60, 110, 40),
+    Snowland (0, 15, 25, 110, 40);
 
 
     private final int tempMin, tempMax, humMin, humMax, rarity;

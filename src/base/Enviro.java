@@ -2,6 +2,7 @@ package base;
 
 import baseCells.Food;
 import enumLists.CellList;
+import enumLists.EnviroList;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -19,7 +20,7 @@ public class Enviro {
     private String biome;
 
     private Cell[][] grid;
-    public static int width = 16;
+    public static int width = 8;
     private double temperature, humidity, altitude;
     private double avgTemp, avgHum;
     private Random r;
@@ -28,7 +29,7 @@ public class Enviro {
 
     private int rainStr, quakeStr, lightningStr, eruptionS;
 
-    public Enviro(double avgTemp, int altitude, double avgHum, String biome, World world, Random r) {
+    public Enviro(double avgTemp, double altitude, double avgHum, String biome, World world, Random r) {
         this.avgTemp = avgTemp;
         this.altitude = altitude;
         this.avgHum = avgHum;
@@ -38,11 +39,65 @@ public class Enviro {
         initGrid ();
     }
 
+    public Enviro(double avgTemp, double altitude, double avgHum, String biome, World world, Random r, int x, int y) {
+        this.avgTemp = avgTemp;
+        this.altitude = altitude;
+        this.avgHum = avgHum;
+        this.temperature = avgTemp;
+        this.humidity = avgHum;
+        this.biome = biome;
+        this.world = world;
+        this.r = r;
+        this.x = x;
+        this.y = y;
+        initGrid ();
+        assignBiome ();
+        generate ();
+    }
+
     public Enviro(int x, int y, World world, Random r) {
         this.world = world;
         this.r = r;
         this.x = x;
         this.y = y;
+    }
+
+    private void assignBiome() {
+        double temp = this.getAvgTemp ();
+        double hum = this.getAvgHum ();
+
+        if (this.getAltitude () <= 0) {
+            this.biome = "Ocean";
+        } else {
+            ArrayList<Double> wProbs = new ArrayList<> ();
+            double tProb = 0;
+            for (EnviroList el : EnviroList.values ()) {
+                if (avgTemp >= el.getTempMin () && avgTemp <= el.getTempMax () && avgHum >= el.getHumMin () && avgHum <= el.getHumMax ()) {
+                    double wProb = 0;
+                    System.out.println ("Found possible " + el.name ());
+                    double diffT = Math.abs (avgTemp - (el.getTempMin () + el.getTempMax ())) / 2;
+                    double diffH = Math.abs (avgHum - (el.getHumMin () + el.getHumMax ())) / 2;
+                    wProb = ((diffT + diffH)) / el.getRarity ();
+                    wProbs.add (wProb);
+                    tProb += wProb;
+                } else {
+                    wProbs.add (0D);
+                }
+            }
+            double selection = r.nextDouble () * tProb;
+            double partial = 0;
+            for (int i = 0; i < wProbs.size (); i++) {
+                partial += wProbs.get (i);
+                if (selection <= partial) {
+                    this.biome = EnviroList.values ()[i].name ();
+                    break;
+                }
+            }
+        }
+        System.out.println (biome);
+        System.out.println ("H: " + avgHum);
+        System.out.println ("T:" + avgTemp);
+        System.out.println (altitude);
     }
 
     private void initGrid() {
@@ -131,7 +186,7 @@ public class Enviro {
                     elements.add (-1);
                 } else {
                     System.out.println (type.name ());
-                    elements.add ((int) Math.round ((((this.avgHum / 20) + Math.abs (r.nextGaussian () / 2)) * type.getHumMult ()) * Math.pow (width / 16, 2)));
+                    elements.add ((int) Math.round ((((this.avgHum / 20) + Math.abs (r.nextGaussian () / 2)) * type.getHumMult ())));
                 }
             } else {
                 elements.add (0);
@@ -179,7 +234,6 @@ public class Enviro {
                                 filled[y][x] = true;
                                 if (grid[y][x] instanceof Food) {
                                     ((Food) grid[y][x]).init ();
-                                    System.out.println ("Bug " + type.name ());
                                 }
                             } else {
                                 k--;
@@ -195,7 +249,6 @@ public class Enviro {
                 grid[i][j].setY (i);
             }
         }
-        printGrid ();
     }
 
     public void printGrid() {

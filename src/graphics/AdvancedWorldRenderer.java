@@ -1,17 +1,19 @@
 package graphics;
 
-import base.*;
+import base.Cell;
+import base.Critter;
+import base.Enviro;
+import base.World;
 import baseCells.Food;
 import baseCells.FreshWater;
 import cells.RiverWater;
-import enumLists.CellList;
-import enumLists.GeneIds;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Vector;
@@ -46,10 +48,18 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     public AdvancedWorldRenderer(World w, JFrame f) {
         this.w = w;
         this.f = f;
-        this.wUnit = 32;
+        this.wUnit = Enviro.width * 2;
         this.addMouseListener (this);
         this.addMouseMotionListener (this);
         this.addMouseWheelListener (this);
+        validate ();
+    }
+
+    public static Color getGreyscale(double num) {
+        float h = Color.RGBtoHSB (0, (int) num, 0, null)[0];
+        float s = Color.RGBtoHSB (0, (int) num, 0, null)[1];
+        float b = Color.RGBtoHSB (0, (int) num, 0, null)[2];
+        return Color.getHSBColor (h, s, b);
     }
 
     @Override
@@ -144,7 +154,11 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
                                 g.setColor (Color.black);
                                 if (cell instanceof Food) {
                                     Food f = ((Food) cell);
-                                    g.setColor (getGreyscale (f.getFoodAmount (0) * 20));
+                                    int amount = (int) (f.getFoodAmount (0) * 15);
+                                    if (f.getFoodTypes ().size () > 1) {
+                                        amount += (int) (f.getFoodAmount (1) * 15);
+                                    }
+                                    g.setColor (getGreyscale (amount));
                                 }
                                 if (cell instanceof FreshWater) {
                                     g.setColor (Color.blue);
@@ -186,13 +200,6 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
         g.drawString (String.valueOf (Critter.fDeaths), (int) (g.getClipBounds ().getX () + 400 / zoom), (int) (g.getClipBounds ().getY () + 40 / zoom));
         g.drawString (String.valueOf (Critter.tDeaths), (int) (g.getClipBounds ().getX () + 440 / zoom), (int) (g.getClipBounds ().getY () + 40 / zoom));
         g.drawString (String.valueOf (Critter.aDeaths), (int) (g.getClipBounds ().getX () + 480 / zoom), (int) (g.getClipBounds ().getY () + 40 / zoom));
-    }
-
-    public Color getGreyscale(double num) {
-        float h = Color.RGBtoHSB (0, (int) num, 0, null)[0];
-        float s = Color.RGBtoHSB (0, (int) num, 0, null)[1];
-        float b = Color.RGBtoHSB (0, (int) num, 0, null)[2];
-        return Color.getHSBColor (h, s, b);
     }
 
     public int translateOnScale(int coordinate, boolean horizontal) {
@@ -266,30 +273,25 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
             ArrayList<Critter> critters = new ArrayList<> ();
             Arrays.fill (traits, 0);
             for (Critter current : (Vector<Critter>) w.getCritters ().clone ()) {
-                if (current.getAbsx () * wUnit / 16 < selectionEndX && current.getAbsy () * wUnit / 16 < selectionEndY && current.getAbsx () * wUnit / 16 > selectionOriginX && current.getAbsy () * wUnit / 16 > selectionOriginY) {
-                    count++;
-                    GenCode gc = current.getCode ();
-                    for (int i = 0; i < 9; i++) {
-                        traits[i] += gc.getGene (GeneIds.values ()[i].name ()).cardinality ();
-                    }
-                    for (int i = 0; i < CellList.values ().length - 1; i++) {
-                        traits[i + 9] += gc.getGene ("PropensionCluster").get (i * 8, i * 8 + 8).cardinality ();
-                    }
-                    traits[32] = (int) current.getHunger ();
-                    traits[33] = (int) current.getThirst ();
-                    traits[34] = current.getGender ();
+                if (current.getAbsx () * 2 < selectionEndX && current.getAbsy () * 2 < selectionEndY && current.getAbsx () * 2 > selectionOriginX && current.getAbsy () * 2 > selectionOriginY) {
                     critters.add (current);
                 }
             }
-            if (count != 0) {
-                for (int i = 0; i < traits.length; i++) {
-                    traits[i] /= count;
-                }
-            }
             JFrame jf = new JFrame ();
+            jf.setLayout (new GridLayout (2, 1));
             jf.setSize (600, 30 * 32);
             jf.setVisible (true);
-            jf.add (new PopulationRenderer (traits, critters));
+            jf.add (new PopulationRenderer (critters));
+            JPanel jp = new JPanel ();
+            jp.setLayout (new GridLayout (20, 2));
+            jp.add (new JLabel (critters.get (0).name));
+            ArrayDeque actions = critters.get (0).getActions ().clone ();
+            while (!actions.isEmpty ()) {
+                JLabel desc = new JLabel ((String) actions.removeFirst ());
+                jp.add (desc);
+                System.out.println (desc.getText ());
+            }
+            jf.add (jp);
 
         } else {
             oldPosX = oldPosX + cameraPosX - dragStartX;

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public abstract class Cell {
+    public static final int amount = 23 + 1;
     public String type;
     public Enviro enviro;
     protected Random r;

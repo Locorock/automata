@@ -6,7 +6,7 @@ import baseCells.Bush;
 
 public class BerryBush extends Bush {
     static final double growthRateA = 1;
-    static final double growthRateB = 6;
+    static final double growthRateB = 8;
     public BerryBush(String type, Enviro enviro) {
         super (type, enviro, growthRateA);
         foods.addFood (growthRateB, 2, 0, growthRateB * enviro.getHumidity ());

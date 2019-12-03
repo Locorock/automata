@@ -24,7 +24,7 @@ public abstract class Grass extends Living implements Food {
 
     @Override
     public void onPassage(Critter critter) {
-        critter.setSpeed (critter.getBaseSpeed () * 0.9);
+        critter.setSpeed (critter.getBaseSpeed () * 1);
     }
 
     @Override

@@ -1,14 +1,9 @@
 package base;
 
-import enumLists.GeneIds;
-
 import java.util.BitSet;
 import java.util.Random;
 
 public class GenCode {
-    public static int GENES_NUMBER = GeneIds.values ().length;
-    public static int GENES_SIZE = GeneIds.values ()[GeneIds.values ().length - 1].getOffset () + GeneIds.values ()[GeneIds.values ().length - 1].getSize ();
-    Random r;
     BitSet code;
 
     public GenCode(GenCode a, GenCode b, Random r) {
@@ -27,19 +22,19 @@ public class GenCode {
 
     public GenCode(Random r) {
         code = new BitSet ();
-        for (int j = 0; j < GENES_SIZE; j++) {
+        for (int j = 0; j < GeneLibrary.getSize (); j++) {
             code.set (j, r.nextBoolean ());
         }
     }
 
     public BitSet getGene(String name) {
-        GeneIds gi = GeneIds.valueOf (name);
-        return code.get (gi.getOffset (), gi.getOffset () + gi.getSize ());
+        int[] index = GeneLibrary.searchIndex (name);
+        return code.get (index[0], index[0] + index[1]);
     }
 
     public int getCardinality(String name) {
-        GeneIds gi = GeneIds.valueOf (name);
-        return code.get (gi.getOffset (), gi.getOffset () + gi.getSize ()).cardinality ();
+        int[] index = GeneLibrary.searchIndex (name);
+        return code.get (index[0], index[0] + index[1]).cardinality ();
     }
 
     public static long convert(BitSet bits) {
@@ -51,8 +46,8 @@ public class GenCode {
     }
 
     public int getDecimal(String name) {
-        GeneIds gi = GeneIds.valueOf (name);
-        return (int) convert (code.get (gi.getOffset (), gi.getOffset () + gi.getSize ()));
+        int[] index = GeneLibrary.searchIndex (name);
+        return (int) convert (code.get (index[0], index[0] + index[1]));
 
     }
 

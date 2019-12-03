@@ -6,7 +6,7 @@ import java.util.List;
 public enum CellList {
     Ambrosia (3, 16, true, Arrays.asList ("PrimSoup")),
     BerryBush (3, 6, true, Arrays.asList ("Forest", "Plains", "Taiga")),
-    BirthingBoughs (3, 1.5, true, Arrays.asList ("PrimSoup")),
+    BirthingBoughs (3, 0.3, true, Arrays.asList ("PrimSoup", "Plains", "Forest", "Desert", "Wetlands", "Savanna", "Taiga")),
     Cactus (3, 16, true, Arrays.asList ("Desert")),
     Carcass (4, 1, true, Arrays.asList ("")),
     Dirt (1, -1, true, Arrays.asList ("Forest", "Savanna", "Wetland", "Jungle", "Steppe")),
@@ -20,13 +20,13 @@ public enum CellList {
     PlainsTree (3, 1, true, Arrays.asList ("Plains", "Savanna")),
     Puddle (4, -1, false, Arrays.asList ("")),
     RiverWater (4, -1, true, Arrays.asList ("")),
-    RockySoil (1, -1, false, Arrays.asList ("Tundra", "Glacial")),
+    RockySoil (1, -1, false, Arrays.asList ("Tundra", "Glacial", "Canyon")),
     SaltWater (1, 1, false, Arrays.asList ("Ocean")),
     Sand (1, -1, true, Arrays.asList ("Desert")),
     Shrub (3, 12, true, Arrays.asList ("Forest", "Plains", "Taiga", "Savanna")),
-    Snow (1, 1, true, Arrays.asList ("Taiga")),
+    Snow (1, 1, true, Arrays.asList ("Taiga", "Snowland")),
     SwampWater (2, 2, false, Arrays.asList ("Wetland")),
-    TaigaTree (3, 4, true, Arrays.asList ("Taiga")),
+    TaigaTree (3, 4, true, Arrays.asList ("Taiga", "Snowland")),
     None (1, 0, false, Arrays.asList (""));
 
 

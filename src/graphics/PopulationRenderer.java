@@ -1,8 +1,9 @@
 package graphics;
 
 import base.Critter;
+import base.GenCode;
+import base.GeneLibrary;
 import enumLists.CellList;
-import enumLists.GeneIds;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,58 +11,70 @@ import java.util.ArrayList;
 
 public class PopulationRenderer extends JPanel {
     ArrayList<JProgressBar> jbars = new ArrayList<> ();
-    int[] traits;
 
-    public PopulationRenderer(int[] traits, ArrayList<Critter> critters) {
-        this.setLayout (new GridLayout (36, 1));
-        this.setSize (600, 50 * 36);
-        JLabel desc = new JLabel (critters.get (0).getActions ().toString ());
-        this.add (desc);
-        JScrollPane scrollPane = new JScrollPane (desc);
-        scrollPane.setSize (600, 5);
-        this.add (scrollPane);
-        this.traits = traits;
-        for (int i = 0; i < 35; i++) {
-            JProgressBar jp = new JProgressBar (SwingConstants.HORIZONTAL);
-            jp.setPreferredSize (new Dimension (600, 50));
-            jp.setMaximum (256);
-            if (i < 9) {
-                jp.setString (GeneIds.values ()[i].name ());
-                if (GeneIds.values ()[i].name ().equals ("DietType")) {
-                    jp.setMaximum (6);
+    public PopulationRenderer(ArrayList<Critter> critters) {
+        int size = GeneLibrary.getIndex ().size () + CellList.values ().length * 2 - 2;
+        this.setLayout (new GridLayout (size / 3, 3));
+        for (String name : GeneLibrary.getIndex ().keySet ()) {
+            int[] index = GeneLibrary.searchIndex (name);
+            if (index[2] != 3) {
+                JProgressBar jp = new JProgressBar (SwingConstants.HORIZONTAL);
+                jp.setPreferredSize (new Dimension (600, 50));
+
+                jp.setStringPainted (true);
+                jp.setString (name);
+                int avg = 0;
+                for (Critter c : critters) {
+                    if (index[2] == 0) {
+                        jp.setMaximum (index[1]);
+                        avg += c.getCode ().getGene (name).cardinality ();
+                    }
+                    if (index[2] == 1) {
+                        jp.setMaximum (index[1]);
+                        avg += c.getCode ().getGene (name).cardinality ();
+                    }
+                    if (index[2] == 2) {
+                        jp.setMaximum (256);
+                        avg += GenCode.convert (c.getCode ().getGene (name));
+                    }
                 }
-                if (i < 3) {
-                    jp.setMaximum (16);
-                }
+                avg /= critters.size ();
+                jp.setValue (avg);
+                jbars.add (jp);
+                this.add (jp);
             } else {
-                if (i < 32) {
-                    jp.setString (CellList.values ()[i - 9].name ());
-                } else {
-                    if (i == 32) {
-                        jp.setMaximum (100);
-                        jp.setString ("Hunger");
+                for (int i = 0; i < CellList.values ().length; i++) {
+                    JProgressBar jp = new JProgressBar (SwingConstants.HORIZONTAL);
+                    jp.setPreferredSize (new Dimension (600, 50));
+                    jp.setMaximum (256);
+                    jp.setStringPainted (true);
+                    jp.setString (CellList.values ()[i].name ());
+                    int avg = 0;
+                    for (Critter c : critters) {
+                        avg += GenCode.convert (c.getCode ().getGene (name).get (i * 8, i * 8 + 8));
                     }
-                    if (i == 33) {
-                        jp.setMaximum (100);
-                        jp.setString ("Thirst");
-                    }
-                    if (i == 34) {
-                        jp.setMaximum (1);
-                        jp.setString ("Gender");
-                    }
+                    avg /= critters.size ();
+                    jp.setValue (avg);
+                    jbars.add (jp);
+                    this.add (jp);
                 }
             }
-            jp.setStringPainted (true);
-            jbars.add (jp);
-            this.add (jp);
-            this.render ();
         }
-    }
-
-    public void render() {
-        for (int i = 0; i < jbars.size (); i++) {
-            jbars.get (i).setValue (traits[i]);
-        }
-        this.repaint ();
+        JProgressBar jp = new JProgressBar (SwingConstants.HORIZONTAL);
+        jp.setPreferredSize (new Dimension (600, 50));
+        jp.setMaximum (100);
+        jp.setStringPainted (true);
+        jp.setString ("Hunger");
+        jp.setValue ((int) critters.get (0).getHunger ());
+        jbars.add (jp);
+        this.add (jp);
+        jp = new JProgressBar (SwingConstants.HORIZONTAL);
+        jp.setPreferredSize (new Dimension (600, 50));
+        jp.setMaximum (100);
+        jp.setStringPainted (true);
+        jp.setString ("Thirst");
+        jp.setValue ((int) critters.get (0).getThirst ());
+        jbars.add (jp);
+        this.add (jp);
     }
 }

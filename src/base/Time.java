@@ -1,9 +1,7 @@
 package base;
 
 import enumLists.EventList;
-import graphics.GeneRenderer;
 
-import javax.swing.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Random;
@@ -18,7 +16,7 @@ public class Time extends Thread {
     private int tot = 0;
     private World w;
     private int seed;
-    public boolean running;
+    public boolean running = true;
 
     public Time(double tickSize, int cycleSize, World w) {
         this.tickSize = tickSize;
@@ -68,15 +66,6 @@ public class Time extends Thread {
                 w.getCritters ().remove (c);
             }
         }
-        if (tot == 200) {
-            JFrame jf = new JFrame ();
-            jf.setSize (640, 630);
-            jf.setVisible (true);
-            GeneRenderer jp = new GeneRenderer ();
-            jf.add (jp);
-            jp.render (w.getCritters ().get (15));
-        }
-        //tot++;
     }
 
     public void cycle() {

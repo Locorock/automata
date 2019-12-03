@@ -8,10 +8,15 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 
+import static base.SimplexNoise.generateOctavedSimplexNoise;
+
 public class World {
+    public static final int tickSpeed = 0;
+    public static final int critterAmount = 0;
+    private static final int size = 64;
+
     private ArrayList<ArrayList<Enviro>> map;
     private Random r;
-    private static final int size = 10;
     private ArrayList<Enviro> enviros = new ArrayList<> ();
     private BitSet[] cellId;
     private int enviroWidth = Enviro.width;
@@ -26,11 +31,13 @@ public class World {
     public World() {
         int seed = new Random ().nextInt (10000);
         this.r = new Random (seed);
-        generateWorldNobs (size, 20, 30, 80);
+        //generateWorldNobs (size, 20, 30, 80);
+        generateWorldSimplex (size, 0, 0);
+        GeneLibrary gl = new GeneLibrary ();
         this.fullHeight = this.map.size () * enviroWidth;
         this.fullWidth = this.map.get (0).size () * enviroWidth;
         Critter.weights = new double[getFullHeight ()][getFullWidth ()];
-        for (int i = 0; i < 0; i++) {
+        for (int i = 0; i < critterAmount; i++) {
             Critter c2 = new Critter ("Katrina", this, 15 * 16 + 5, 15 * 16 + 5);
             critters.add (c2);
         }
@@ -42,8 +49,9 @@ public class World {
         jp.repaint ();
         this.panel = jp;
         System.out.println ("Finished");
-        t = new Time (2, 20, this);
+        t = new Time (tickSpeed, 20, this);
         t.start ();
+        System.out.println ("Timing");
     }
 
     public static void main(String[] args) {
@@ -77,6 +85,99 @@ public class World {
             }
         }
         return "";
+    }
+
+    private float[][] circularFilter(float[][] map) {
+        /*
+            import math
+
+            center_x, center_y = shape[1] // 2, shape[0] // 2
+            circle_grad = np.zeros_like(world)
+
+            for y in range(world.shape[0]):
+                for x in range(world.shape[1]):
+                    distx = abs(x - center_x)
+                    disty = abs(y - center_y)
+                    dist = math.sqrt(distx*distx + disty*disty)
+                    circle_grad[y][x] = dist
+
+            # get it between -1 and 1
+            max_grad = np.max(circle_grad)
+            circle_grad = circle_grad / max_grad
+            circle_grad -= 0.5
+            circle_grad *= 2.0
+            circle_grad = -circle_grad
+
+            # shrink gradient
+            for y in range(world.shape[0]):
+                for x in range(world.shape[1]):
+                    if circle_grad[y][x] > 0:
+                        circle_grad[y][x] *= 20
+
+            # get it between 0 and 1
+            max_grad = np.max(circle_grad)
+            circle_grad = circle_grad / max_grad
+         */
+        float[][] result = new float[map.length][map.length];
+        int centerX = size / 2, centerY = size / 2;
+        double[][] grad = new double[map.length][map.length];
+        double max = 0;
+        for (int i = 0; i < map.length; i++) {
+            for (int j = 0; j < map.length; j++) {
+                int distx = Math.abs (j - centerX);
+                int disty = Math.abs (i - centerY);
+                grad[i][j] = Math.sqrt (distx * distx + disty * disty);
+                if (grad[i][j] > max) {
+                    max = grad[i][j];
+                }
+            }
+        }
+        double max2 = 0;
+        for (int i = 0; i < map.length; i++) {
+            for (int j = 0; j < map.length; j++) {
+                if (grad[i][j] > max2) {
+                    max2 = grad[i][j];
+                }
+            }
+        }
+        for (int i = 0; i < map.length; i++) {
+            for (int j = 0; j < map.length; j++) {
+                grad[i][j] /= max2;
+                grad[i][j] = 1 - grad[i][j];
+                result[i][j] = (float) ((grad[i][j] * map[i][j]) - 0.2);
+            }
+        }
+        for (int i = 0; i < grad.length; i++) {
+            for (int j = 0; j < grad.length; j++) {
+                System.out.print (grad[i][j]);
+            }
+            System.out.println ();
+        }
+
+        return result;
+    }
+
+    private void generateWorldSimplex(int size, int skew, int magnitude) {
+        float[][] heightMap = circularFilter (generateOctavedSimplexNoise (size, size, 5, 0.1f, 0.1f, r));
+        float[][] heatMap = generateOctavedSimplexNoise (size, size, 3, 0.1f, 0.01f, r);
+        float[][] humidityMap = generateOctavedSimplexNoise (size, size, 3, 0.1f, 0.01f, r);
+        map = new ArrayList<ArrayList<Enviro>> ();
+        for (int i = 0; i < size; i++) {
+            map.add (new ArrayList<> ());
+            for (int j = 0; j < size; j++) {
+                double dist = (Math.abs (j - size / 2) + Math.abs (i - size / 2));
+                double height = heightMap[i][j];
+                double temp = Math.abs (heatMap[i][j]) * 100;
+                double hum = Math.abs (humidityMap[i][j]) * 100;
+
+                Enviro e = new Enviro (temp, height, hum, null, this, r, j, i);
+                map.get (i).add (e);
+                enviros.add (e);
+            }
+        }
+        //generateRivers ();
+        coordinateCells ();
+        printBiomes ();
     }
 
     private void generateWorldNobs(int max, double temp, double hum, int alt) {
@@ -256,7 +357,7 @@ public class World {
         }
         double[][] topMax = new double[nRiviello][3];
         for (int k = 0; k < nRiviello; k++) {
-            topMax[k] = new double[]{0, 1000, 1000};
+            topMax[k] = new double[]{0, 0, 0};
         }
         for (int k = 0; k < nRiviello; k++) {
             for (int i = 0; i < map.size (); i++) {
@@ -458,13 +559,6 @@ public class World {
         try {
             return getMap ().get (absy / enviroWidth).get (absx / enviroWidth).getGrid ()[absy % enviroWidth][absx % enviroWidth];
         } catch (IndexOutOfBoundsException e) {
-            e.printStackTrace ();
-            System.out.println (absy + "/" + enviroWidth + "=" + absy / enviroWidth);
-            System.out.println (absx + "/" + enviroWidth + "=" + absx / enviroWidth);
-            System.out.println (absx + "%" + enviroWidth + "=" + absx % enviroWidth);
-            System.out.println (absy + "%" + enviroWidth + "=" + absy % enviroWidth);
-            System.out.println (this.map.size ());
-            System.out.println (this.getFullHeight ());
         }
         return null;
     }

@@ -19,6 +19,6 @@ public class HighGrass extends Grass implements Food {
     }
     @Override
     public void onPassage(Critter critter) {
-        critter.setSpeed (critter.getBaseSpeed () * 0.8);
+        critter.setSpeed (critter.getBaseSpeed () * 0.9);
     }
 }
