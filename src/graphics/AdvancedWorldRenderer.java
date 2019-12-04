@@ -16,7 +16,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Vector;
+import java.util.TreeSet;
 
 public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener, MouseListener, MouseWheelListener {
     private Enviro enviro;
@@ -172,7 +172,7 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
 
             });
         });
-        ((Vector<Critter>) w.getCritters ().clone ()).forEach (current -> {
+        ((TreeSet<Critter>) w.getCritters ().clone ()).forEach (current -> {
             Rectangle2D r = new Rectangle (2 * current.getAbsx (), 2 * current.getAbsy (), 2, 2);
             if (current.getDietType () < 6) {
                 g.setColor (Color.red);
@@ -272,7 +272,7 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
             int[] traits = new int[35];
             ArrayList<Critter> critters = new ArrayList<> ();
             Arrays.fill (traits, 0);
-            for (Critter current : (Vector<Critter>) w.getCritters ().clone ()) {
+            for (Critter current : (TreeSet<Critter>) w.getCritters ().clone ()) {
                 if (current.getAbsx () * 2 < selectionEndX && current.getAbsy () * 2 < selectionEndY && current.getAbsx () * 2 > selectionOriginX && current.getAbsy () * 2 > selectionOriginY) {
                     critters.add (current);
                 }

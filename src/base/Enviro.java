@@ -18,6 +18,7 @@ public class Enviro {
     private double distance;
     private World world;
     private String biome;
+    private ArrayList<Critter> critters = new ArrayList<> ();
 
     private Cell[][] grid;
     public static int width = 8;
@@ -539,5 +540,13 @@ public class Enviro {
 
     public void setEnviroDirs(Enviro[] dirs) {
         this.enviroDirs = dirs;
+    }
+
+    public ArrayList<Critter> getCritters() {
+        return critters;
+    }
+
+    public void setCritters(ArrayList<Critter> critters) {
+        this.critters = critters;
     }
 }

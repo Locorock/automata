@@ -7,7 +7,7 @@ import enumLists.CellList;
 
 import java.util.*;
 
-public class Critter {
+public class Critter implements Comparable<Critter> {
     public static double[][] weights;
     private Enviro enviro;
     private GenCode code;
@@ -71,8 +71,8 @@ public class Critter {
         this.enviro = cell.getEnviro ();
         this.name = name + "_" + id++;
         this.code = code;
-        this.mateTolerance = 16;
         this.buildTraits ();
+        this.mateTolerance = 16;
     }
 
     public void buildTraits() {
@@ -80,9 +80,9 @@ public class Critter {
         this.mateRate = shiftToRange (0.5, 2, code.getDecimal ("MateRate"), 256);
         this.foodEff = shiftToRange (1, 1, code.getDecimal ("FoodEff"), 256);
         this.waterEff = shiftToRange (1, 1, code.getDecimal ("WaterEff"), 256);
-        this.baseSpeed = shiftToRange (0.5, 2, code.getDecimal ("BaseSpeed"), 256);
+        this.baseSpeed = shiftToRange (0.5, 2, code.getDecimal ("BaseSpeed"), 256) + world.getR ().nextDouble () / 2 - 0.25;
         this.height = shiftToRange (0.5, 4, code.getDecimal ("Height"), 256);
-        this.webbedFeet = shiftToRange (0, 1, code.getDecimal ("WebbedFeet"), 256);
+        this.webbedFeet = shiftToRange (0, 3, code.getDecimal ("WebbedFeet"), 256);
         this.dietType = code.getCardinality ("DietType");
 
         BitSet set = this.code.getGene ("PropensionCluster");
@@ -172,7 +172,7 @@ public class Critter {
         }
     }
 
-    public void lookForMate() {
+    public void lookForMateOld() {
         for (Critter critter : world.getCritters ()) {
             if (Math.abs (critter.absx - this.absx) < range && Math.abs (critter.absy - this.absy) < range) {
                 int diff = critter.code.getHammingDiff ("AppearanceCluster", this.code.getGene ("AppearanceCluster"));
@@ -185,6 +185,30 @@ public class Critter {
             }
         }
     }
+
+    public void lookForMate() {
+        for (int i = enviro.getY () - 1; i <= enviro.getY () + 1; i++) {
+            for (int j = enviro.getX () - 1; j <= enviro.getX () + 1; j++) {
+                if (j >= 0 && i >= 0 && j < world.getMap ().size () && i < world.getMap ().size ()) {
+                    Enviro current = world.getMap ().get (enviro.getY ()).get (enviro.getX ());
+                    for (Critter critter : current.getCritters ()) {
+                        if (!critter.equals (this) && Math.abs (critter.getAbsx () - this.absx) < range - 1 && Math.abs (critter.getAbsy () - this.absy) < range - 1) {
+                            int diff = critter.code.getHammingDiff ("AppearanceCluster", this.code.getGene ("AppearanceCluster"));
+                            if (diff < mateTolerance) {
+                                if (critter.mateHandshake (this, diff)) {
+                                    weights = dijkPaths ();
+                                    path = pathTo (critter.getAbsx (), critter.getAbsy ());
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
 
     public boolean mateHandshake(Critter critter, int diff) {
         if (diff < mateTolerance) {
@@ -199,6 +223,7 @@ public class Critter {
     public void reproduce(Critter father) {
         Critter child = new Critter ("Salino", world, absx, absy, father, this);
         world.getCritters ().add (child);
+        this.enviro.getCritters ().add (child);
         this.mateElapsedTime = mateCooldown;
         this.hunger += 35;
         this.thirst += 35;
@@ -398,7 +423,9 @@ public class Critter {
         this.cell = world.getAbsCell (absx, absy);
         this.absx = absx;
         this.absy = absy;
+        this.enviro.getCritters ().remove (this);
         this.enviro = cell.getEnviro ();
+        this.enviro.getCritters ().add (this);
     }
 
     public double shiftToRange(double rangeStart, double rangeEnd, int value, int subdivisions) {
@@ -595,5 +622,26 @@ public class Critter {
 
     public void setWebbedFeet(double webbedFeet) {
         this.webbedFeet = webbedFeet;
+    }
+
+    public Cell getCell() {
+        return cell;
+    }
+
+    public void setCell(Cell cell) {
+        this.cell = cell;
+    }
+
+    @Override
+    public int compareTo(Critter critter) {
+        if (this.baseSpeed > critter.baseSpeed) {
+            return 1;
+        } else {
+            if (this.baseSpeed == critter.baseSpeed) {
+                return 0;
+            } else {
+                return -1;
+            }
+        }
     }
 }

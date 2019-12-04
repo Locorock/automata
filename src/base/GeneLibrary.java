@@ -41,7 +41,8 @@ public class GeneLibrary {
         FoodEff (8, 2),
         BaseSpeed (8, 2),
         Height (8, 2),
-        DietType (5, 1),
+        DietType (7, 1),
+        Aggressiveness (8, 2),
         WebbedFeet (8, 2),
         PropensionCluster (CellList.values ().length * 8, 3),
         CrossingCluster (CellList.values ().length * 8, 3);

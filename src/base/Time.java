@@ -64,6 +64,7 @@ public class Time extends Thread {
                 c.tick ();
             } else {
                 w.getCritters ().remove (c);
+                c.getEnviro ().getCritters ().remove (c);
             }
         }
     }

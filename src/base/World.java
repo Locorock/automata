@@ -24,7 +24,7 @@ public class World {
     private int fullWidth;
     private int fullHeight;
     private Time t;
-    private Vector<Critter> critters = new Vector<Critter> ();
+    private TreeSet<Critter> critters = new TreeSet<Critter> (Critter::compareTo);
     public ArrayDeque<Cell> cells = new ArrayDeque<> ();
     public ArrayDeque<Cell> updates = new ArrayDeque<> ();
 
@@ -627,11 +627,11 @@ public class World {
         this.fullHeight = fullHeight;
     }
 
-    public Vector<Critter> getCritters() {
+    public TreeSet<Critter> getCritters() {
         return critters;
     }
 
-    public void setCritters(Vector<Critter> critters) {
+    public void setCritters(TreeSet<Critter> critters) {
         this.critters = critters;
     }
 

@@ -17,7 +17,9 @@ public class BirthingBoughs extends Cell implements Solid {
     public void tick() {
         if (enviro.getWorld ().getCritters ().size () < 100 && elapsed == 0) {
             elapsed = cooldown;
-            enviro.getWorld ().getCritters ().add (new Critter ("Boughy", enviro.getWorld (), this.absX, this.absY));
+            Critter c = new Critter ("Boughy", enviro.getWorld (), this.absX, this.absY);
+            enviro.getWorld ().getCritters ().add (c);
+            this.enviro.getCritters ().add (c);
         }
         if (elapsed > 0) {
             elapsed--;
