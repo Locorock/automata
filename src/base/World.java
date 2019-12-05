@@ -36,7 +36,7 @@ public class World {
         GeneLibrary gl = new GeneLibrary ();
         this.fullHeight = this.map.size () * enviroWidth;
         this.fullWidth = this.map.get (0).size () * enviroWidth;
-        Critter.weights = new double[getFullHeight ()][getFullWidth ()];
+        DecisionalCore.weights = new double[getFullHeight ()][getFullWidth ()];
         for (int i = 0; i < critterAmount; i++) {
             Critter c2 = new Critter ("Katrina", this, 15 * 16 + 5, 15 * 16 + 5);
             critters.add (c2);
@@ -88,36 +88,6 @@ public class World {
     }
 
     private float[][] circularFilter(float[][] map) {
-        /*
-            import math
-
-            center_x, center_y = shape[1] // 2, shape[0] // 2
-            circle_grad = np.zeros_like(world)
-
-            for y in range(world.shape[0]):
-                for x in range(world.shape[1]):
-                    distx = abs(x - center_x)
-                    disty = abs(y - center_y)
-                    dist = math.sqrt(distx*distx + disty*disty)
-                    circle_grad[y][x] = dist
-
-            # get it between -1 and 1
-            max_grad = np.max(circle_grad)
-            circle_grad = circle_grad / max_grad
-            circle_grad -= 0.5
-            circle_grad *= 2.0
-            circle_grad = -circle_grad
-
-            # shrink gradient
-            for y in range(world.shape[0]):
-                for x in range(world.shape[1]):
-                    if circle_grad[y][x] > 0:
-                        circle_grad[y][x] *= 20
-
-            # get it between 0 and 1
-            max_grad = np.max(circle_grad)
-            circle_grad = circle_grad / max_grad
-         */
         float[][] result = new float[map.length][map.length];
         int centerX = size / 2, centerY = size / 2;
         double[][] grad = new double[map.length][map.length];

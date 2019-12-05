@@ -18,14 +18,14 @@ public class Foods {
         growthRates.add (growthRate);
         foodTypes.add (foodType);
         foodAmounts.add (foodAmount);
-        maxAmounts.add (maxAmount / 8); //test
+        maxAmounts.add (maxAmount / 5); //test
         size++;
     }
 
     public void grow() {
         for (int i = 0; i < size; i++) {
             if (foodAmounts.get (i) < maxAmounts.get (i)) {
-                double amount = foodAmounts.get (i) + enviro.getHumidity () * growthRates.get (i) / 2;
+                double amount = foodAmounts.get (i) + enviro.getHumidity () * growthRates.get (i) / 30;
                 this.foodAmounts.set (i, amount);
             }
 

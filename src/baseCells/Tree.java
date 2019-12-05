@@ -24,6 +24,7 @@ public abstract class Tree extends Living implements Food {
     @Override
     public void tick() {
         super.tick ();
+        foods.grow ();
         this.height = this.height + (enviro.getHumidity () / (baseH * 100));
     }
 
