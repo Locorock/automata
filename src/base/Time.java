@@ -35,9 +35,11 @@ public class Time extends Thread {
                 try {
                     double elapsed = 0;
                     long start = System.nanoTime ();
-                    CountDownLatch latch = new CountDownLatch (1);
-                    w.panel.update (latch);
-                    latch.await ();
+                    if (!w.panel.spheed) {
+                        CountDownLatch latch = new CountDownLatch (1);
+                        w.panel.update (latch);
+                        latch.await ();
+                    }
                     tick ();
                     ticks++;
                     if (ticks >= cycleSize) {
@@ -47,7 +49,8 @@ public class Time extends Thread {
                     elapsed = (double) (System.nanoTime () - start) / 1000000;
                     w.panel.lastCycleTime = elapsed;
                     w.panel.totalAmount = w.getCritters ().size ();
-                    if (elapsed < tickSize)
+                    System.out.println (elapsed + " - " + w.getCritters ().size ());
+                    if (elapsed < tickSize && tickSize != 0)
                         sleep ((long) tickSize - (long) elapsed);
                 } catch (InterruptedException e) {
                     e.printStackTrace ();

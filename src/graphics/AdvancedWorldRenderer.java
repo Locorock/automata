@@ -47,6 +47,9 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     private CountDownLatch latch;
     private AffineTransform translate;
     private AffineTransform scale;
+    public boolean spheed = false;
+    private boolean showAll = false;
+    private boolean humidityView = false;
 
     public AdvancedWorldRenderer(World w, JFrame f) {
         this.w = w;
@@ -143,7 +146,11 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
                         }
                     }
                 } else {
-                    c = getGreyscale (currentEnviro.getCritters ().size () * 30);
+                    if (humidityView) {
+                        c = getGreyscale (currentEnviro.getHumidity () * 2.5);
+                    } else {
+                        c = getGreyscale (currentEnviro.getCritters ().size () * 30);
+                    }
                 }
 
                 g.setColor (c);
@@ -184,6 +191,17 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
                                 }
                             }
                         }
+                        if (!showAll) {
+                            currentEnviro.getCritters ().forEach (critter -> {
+                                if (critter.getSize () >= 0) {
+                                    Rectangle2D re = new Rectangle (2 * critter.getAbsx (), 2 * critter.getAbsy (), 2, 2);
+                                    g.setColor (getRedScale (critter.getSize () * 100));
+                                    g.fill (re);
+                                }
+                            });
+                        }
+                    }
+                    if (showAll) {
                         currentEnviro.getCritters ().forEach (critter -> {
                             if (critter.getSize () >= 0) {
                                 Rectangle2D re = new Rectangle (2 * critter.getAbsx (), 2 * critter.getAbsy (), 2, 2);
@@ -260,6 +278,15 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
         }
         if (SwingUtilities.isRightMouseButton (mouseEvent) && mouseEvent.isShiftDown ()) {
             biomeView = !biomeView;
+        }
+        if (SwingUtilities.isRightMouseButton (mouseEvent) && mouseEvent.isShiftDown () && mouseEvent.isAltDown ()) {
+            spheed = !spheed;
+        }
+        if (SwingUtilities.isRightMouseButton (mouseEvent) && mouseEvent.isAltDown () && mouseEvent.isControlDown ()) {
+            showAll = !showAll;
+        }
+        if (SwingUtilities.isRightMouseButton (mouseEvent) && mouseEvent.isAltGraphDown ()) {
+            humidityView = !humidityView;
         }
     }
 

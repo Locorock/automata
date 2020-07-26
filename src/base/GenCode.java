@@ -113,7 +113,7 @@ public class GenCode {
 
     public void mutate(Random r) {
         for (int i = 0; i < code.size (); i++) {
-            if (r.nextInt (10000) == 0) {
+            if (r.nextInt (5000) == 0) {
                 code.flip (i);
             }
         }

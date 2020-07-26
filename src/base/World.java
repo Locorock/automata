@@ -165,7 +165,7 @@ public class World {
                 double dist = (Math.abs (j - size / 2) + Math.abs (i - size / 2));
                 double height = heightMap[i][j];
                 double temp = Math.abs (heatMap[i][j]) * 100;
-                double hum = Math.abs (humidityMap[i][j]) * 100;
+                double hum = Math.abs (humidityMap[i][j]) * 100 + 20;
 
                 Enviro e = new Enviro (temp, height, hum, null, this, r, j, i);
                 map.get (i).add (e);

@@ -10,7 +10,7 @@ public class BirthingBoughs extends Cell implements Solid {
     int cooldown = 10;
     int elapsed = 0;
 
-    int[] microCritter = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1};
+    int[] microCritter = {-1, -1, -1, -1, -1, -1, -1, -1, 0, -1, 0, -1, -1};
 
     public BirthingBoughs(String type, Enviro enviro) {
         super (type, enviro);

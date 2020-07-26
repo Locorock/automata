@@ -27,7 +27,7 @@ public class Critter implements Comparable<Critter> {
     private double maxThirst = 100;
     private int range = 8; //HARDCODED FOR NOW
     private double speed = 2;
-    private int mateTolerance;
+    private int mateTolerance = 10000;
     private double mateRate;
     private double foodEff;
     private double waterEff;
@@ -72,7 +72,7 @@ public class Critter implements Comparable<Critter> {
         this.decisionalCore = new DecisionalCore (this);
         this.buildTraits ();
         this.size++; //0-->1
-        this.range = (int) Math.round (size) + 3;
+        this.range = (int) Math.round (size / 2) + 3;
         this.maxHunger = (int) (this.maxHunger * size);
         this.maxThirst = (int) (this.maxThirst * size);
         this.hunger = this.maxHunger / 3;
@@ -93,7 +93,7 @@ public class Critter implements Comparable<Critter> {
         this.aggressiveness = shiftToRange (0, 10, code.getCardinality ("Aggressiveness"), 256);
         this.size = code.getCardinality ("Size");
         this.dietType = code.getCardinality ("DietType");
-        this.timeToLive = (int) ((300 + (world.getR ().nextInt (50)) - (mateRate * 80)) * size);
+        this.timeToLive = (int) ((300 + (world.getR ().nextInt (50)) - (mateRate * 80)));
         this.mateCooldown = (int) (45 * mateRate * 2);
     }
 
@@ -141,7 +141,7 @@ public class Critter implements Comparable<Critter> {
         return false;
     }
 
-    public boolean eatOnCell() {
+    public void eatOnCell() {
         double maxAmount = 0;
         double maxMult = 0;
         int max = -1;
@@ -155,22 +155,18 @@ public class Critter implements Comparable<Critter> {
                     mult = 0; //mult lontano dalla dieta
                 }
             }
-            if (mult * cell.getEatable (i) > maxAmount) {
+            if (mult * cell.getEatable (i) * size > maxAmount) {
                 maxMult = mult;
-                maxAmount = mult * cell.getEatable (i);
+                maxAmount = mult * cell.getEatable (i) * size;
                 max = i;
             }
         }
-        if (max != -1) {   //MODFICATO, RICHIEDE PIÙ CIBO ALL'INCREMENTARE DELLA TAGLIA E MANGIA PIÙ CIBO AL TURNO ALL'INCREMENTARE DI QUEST'ULTIMA
+        if (max != -1) {   //MODFICATO, MANGIA PIÙ CIBO AL TURNO ALL'INCREMENTARE DI QUEST'ULTIMA
             double amount = cell.getEatable (max);
-            if ((amount * (hunger - (thirst / 2))) / size > (maxHunger / 50)) {
-                this.setHunger (this.getHunger () - amount * maxMult * size);
-                cell.removeFood (max, amount * size);
-                cell.onEat (this);
-                return true;
-            }
+            this.setHunger (this.getHunger () - maxAmount);
+            cell.removeFood (max, amount * size);
+            cell.onEat (this);
         }
-        return false;
     }
 
     public void drinkOnCell() {
@@ -214,6 +210,19 @@ public class Critter implements Comparable<Critter> {
     }
 
     public void moveTo(int absx, int absy) {
+        if (absx > world.getFullWidth ()) {
+            absx = absx - world.getFullWidth ();
+        }
+        if (absx < 0) {
+            absx = absx + world.getFullWidth ();
+        }
+        if (absy > world.getFullHeight ()) {
+            absy = absy - world.getFullHeight ();
+        }
+        if (absy < 0) {
+            absy = absy + world.getFullHeight ();
+        }
+
         Cell c = world.getAbsCell (absx, absy);
         if (c != null) {
             this.cell = c;
@@ -233,7 +242,6 @@ public class Critter implements Comparable<Critter> {
             double occ = CellList.valueOf (other.getCell ().getType ()).getOccultation ();
             double camo = 1;
             double chance = ((1.0 / speed) * occ * camo * 2.0);
-            System.out.println (chance);
             int n = this.world.getR ().nextInt ((int) (chance * 100));
             if (n < 50) {
                 this.alert (other);

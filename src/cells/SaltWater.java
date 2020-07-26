@@ -18,6 +18,6 @@ public class SaltWater extends Cell implements Solid, FreshWater {
 
     @Override
     public void onDrink(Critter critter) {
-        critter.setThirst (critter.getThirst () - 2);
+        critter.setThirst (critter.getThirst () - 4 * critter.getSize ());
     }
 }

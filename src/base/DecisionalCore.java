@@ -57,40 +57,39 @@ public class DecisionalCore {
                         if (owner.getWorld ().getR ().nextInt (100) < 20) {
                             owner.moveTo (owner.getAbsx () + owner.getWorld ().getR ().nextInt (3) - 1, owner.getAbsy () + owner.getWorld ().getR ().nextInt (3) - 1);
                         } else {
-                            if (owner.getEnviro ().getHumidity () > 80 || owner.getEnviro ().getBiome ().equals ("Ocean")) {
+                            if (owner.getEnviro ().getHumidity () > 60 || owner.getEnviro ().getBiome ().equals ("Ocean")) {
                                 owner.eatSun ();
                             }
                         }
                         owner.setThirst (0);
                     } else {
                         if (owner.getAge () > 80 && lookForMate ()) {
-                            action += "FOUND SOME SCOPA";
-                        } else { // PRIORITY 4
-                            if (path != null && !path.isEmpty ()) {
-                                action += "PASSETTO ";
-                                owner.setMovementProgress (owner.getMovementProgress () + owner.getSpeed ());
-                                while (owner.getMovementProgress () > 1 && !path.isEmpty ()) {
-                                    owner.setMovementProgress (owner.getMovementProgress () - (1 / owner.getSpeed ()));
-                                    int[] next = path.removeFirst ();
-                                    owner.moveTo (next[0], next[1]);
-                                    ((Solid) owner.getWorld ().getAbsCell (next[0], next[1])).onPassage (owner);
+                            action += "found mate ";
+                        }
+                        if (path != null && !path.isEmpty ()) {
+                            action += "stepping ";
+                            owner.setMovementProgress (owner.getMovementProgress () + owner.getSpeed ());
+                            while (owner.getMovementProgress () > 1 && !path.isEmpty ()) {
+                                owner.setMovementProgress (owner.getMovementProgress () - (1 / owner.getSpeed ()));
+                                int[] next = path.removeFirst ();
+                                owner.moveTo (next[0], next[1]);
+                                ((Solid) owner.getWorld ().getAbsCell (next[0], next[1])).onPassage (owner);
+                            }
+                        } else { //PRIORITA FOTTUTE DA REWORKARE
+                            if (owner.getCell ().getFoods () != null) { //EATONCELL RETURNS TRUE IF THE CRITTER ATE
+                                owner.eatOnCell ();
+                                action += "eating ";
+                            } else {
+                                if (owner.getCell () instanceof FreshWater && owner.getThirst () > 5) {
+                                    action += "drinking ";
+                                    owner.drinkOnCell ();
                                 }
-                            } else { //PRIORITA FOTTUTE DA REWORKARE
-                                if (owner.getCell ().getFoods () != null && owner.eatOnCell ()) { //EATONCELL RETURNS TRUE IF THE CRITTER ATE
-                                    action += "MANG ";
-                                } else { //PRIORITY 5
-                                    if (owner.getCell () instanceof FreshWater && owner.getThirst () > 5) {
-                                        action += "SLURP ";
-                                        owner.drinkOnCell ();
-                                    } else { //PRIORITY 6
-                                        if (owner.getHunger () > 20 && owner.getWorld ().getR ().nextInt (100) < owner.getAggressiveness () && hunt ()) {
-                                            action += "BRUH TI SPACCO ";
-                                        } else { // PRIORITY 7
-                                            action += "STONKS ";
-                                            path = choosePath ();
-                                        }
-                                    }
-                                }
+                            }
+                            if (owner.getHunger () > 20 && owner.getWorld ().getR ().nextInt (150) < owner.getAggressiveness () && hunt ()) {
+                                action += "hunting ";
+                            } else { // PRIORITY 7
+                                action += "pathing ";
+                                path = choosePath ();
                             }
                         }
                     }
@@ -110,14 +109,13 @@ public class DecisionalCore {
         int absy = owner.getAbsy ();
         int dietType = owner.getDietType ();
 
-
-        int destx = 0, desty = 0;
+        int destx = absx, desty = absy;
         double max = Double.MIN_VALUE;
         for (int i = -range; i <= range; i++) {
             for (int j = -range; j <= range; j++) {
                 Cell c = world.getAbsCell (j + absx, i + absy);
                 if (c != null) {
-                    double propension = this.propensionMap.get (c.getType ()) + world.getR ().nextGaussian ();
+                    double propension = this.propensionMap.get (c.getType ());
                     if (c.getFoods () != null) {
                         int amount = 0;
                         for (int k = 0; k < c.getFoodTypes ().size (); k++) {
@@ -134,6 +132,7 @@ public class DecisionalCore {
                     if (c instanceof FreshWater) {
                         propension += owner.getThirst ();
                     }
+                    propension -= weights[i + absy][j + absx];
                     if (propension > max) {
                         max = propension;
                         destx = j + absx;
@@ -141,6 +140,7 @@ public class DecisionalCore {
                     }
                 }
             }
+            owner.getActions ().add ("M: " + absx + " " + destx + " " + absy + " " + desty);
         }
         if (destx == absx && desty == absy) { //WANDER
             int heartRate = 0;
@@ -291,7 +291,6 @@ public class DecisionalCore {
                 }
                 Critter.kDeaths++;
             } else {
-                System.out.println ("oh oh, are you approaching me?");
                 stepSeek (interacting);
                 interacting.triggerPerception (owner);
             }
@@ -362,7 +361,7 @@ public class DecisionalCore {
                 if (j >= 0 && i >= 0 && j < w.getMap ().size () && i < w.getMap ().size ()) {
                     Enviro current = w.getMap ().get (enviro.getY ()).get (enviro.getX ());
                     for (Critter critter : current.getCritters ()) {
-                        if (!critter.equals (owner) && Math.abs (critter.getAbsx () - owner.getAbsx ()) < owner.getRange () - 1 && Math.abs (critter.getAbsy () - owner.getAbsy ()) < critter.getRange () - 1) {
+                        if (!critter.equals (owner) && critter.getSize () >= 3 && Math.abs (critter.getAbsx () - owner.getAbsx ()) < owner.getRange () - 1 && Math.abs (critter.getAbsy () - owner.getAbsy ()) < critter.getRange () - 1) {
                             int diff = critter.getCode ().getFullDiff (owner.getCode ());
                             if (diff < owner.getMateTolerance ()) {
                                 if (critter.mateHandshake (owner, diff)) {
