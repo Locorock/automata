@@ -1,6 +1,5 @@
 package base;
 
-import baseCells.Food;
 import enumLists.CellList;
 import enumLists.EnviroList;
 
@@ -67,7 +66,7 @@ public class Enviro {
         double temp = this.getAvgTemp ();
         double hum = this.getAvgHum ();
 
-        if (this.getAltitude () <= 0) {
+        if (this.getAltitude () <= 0.15) {
             this.biome = "Ocean";
         } else {
             ArrayList<Double> wProbs = new ArrayList<> ();
@@ -233,8 +232,8 @@ public class Enviro {
                             if (!filled[y][x]) {
                                 grid[y][x] = makeCell (type.name (), this);
                                 filled[y][x] = true;
-                                if (grid[y][x] instanceof Food) {
-                                    ((Food) grid[y][x]).init ();
+                                if (grid[y][x].getFoods () != null) {
+                                    grid[y][x].initFoods ();
                                 }
                             } else {
                                 k--;
@@ -276,8 +275,8 @@ public class Enviro {
                     groundName = groundB;
                 }
                 grid[i][j] = makeCell (groundName, this);
-                if (grid[i][j] instanceof Food) {
-                    ((Food) grid[i][j]).init ();
+                if (grid[i][j].getFoods () != null) {
+                    grid[i][j].initFoods ();
                 }
             }
         }

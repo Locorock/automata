@@ -6,17 +6,19 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Vector;
+import java.util.concurrent.CountDownLatch;
 
 public class Time extends Thread {
     ArrayList<Event> events;
-    private Random r;
-    private double tickSize; //in seconds
-    private int cycleSize; //in ticks
+    public static int count = 0;
+    private final Random r;
+    private final double tickSize; //in seconds
     private int ticks = 0;
-    private int tot = 0;
-    private World w;
+    private final int cycleSize; //in ticks
+    private final int tot = 0;
     private int seed;
-    public boolean running = true;
+    private final World w;
+    public boolean running = false;
 
     public Time(double tickSize, int cycleSize, World w) {
         this.tickSize = tickSize;
@@ -33,8 +35,10 @@ public class Time extends Thread {
                 try {
                     double elapsed = 0;
                     long start = System.nanoTime ();
+                    CountDownLatch latch = new CountDownLatch (1);
+                    w.panel.update (latch);
+                    latch.await ();
                     tick ();
-                    w.panel.repaint ();
                     ticks++;
                     if (ticks >= cycleSize) {
                         cycle ();
@@ -63,6 +67,20 @@ public class Time extends Thread {
             if (c.isAlive ()) {
                 c.tick ();
             } else {
+                Foods foods = c.getCell ().getFoods ();
+                double amount = (c.getAge () + c.getSize () * 50) / 200;     //CORPSE FOOD VALUE
+                if (foods != null) {
+                    if (foods.getFoodTypes ().contains (6)) {
+                        int index = foods.getFoodTypes ().indexOf (6);
+                        foods.addFoodToExisting (index, amount);
+                    } else {
+                        foods.addFood (-0.05, 6, amount, Double.MAX_VALUE);
+                    }
+                } else {
+                    foods = new Foods (c.getEnviro ());
+                    foods.addFood (-0.05, 6, amount, Double.MAX_VALUE);
+                    c.getCell ().setFoods (foods);
+                }
                 w.getCritters ().remove (c);
                 c.getEnviro ().getCritters ().remove (c);
             }
@@ -77,7 +95,6 @@ public class Time extends Thread {
     }
 
     public void generateEvents() {
-        long start = System.nanoTime ();
         for (EventList event : EventList.values ()) {
             for (Enviro enviro : w.getEnviros ()) {
                 if (event.getBiomes () == null || event.getBiomes ().contains (enviro.getBiome ())) {
@@ -90,7 +107,6 @@ public class Time extends Thread {
                         try {
                             Event e = (Event) Class.forName ("events." + event.name ()).getDeclaredConstructor (new Class[]{Enviro.class, String.class}).newInstance (enviro, event.name ());
                             events.add (e);
-                            System.out.println ("Aggiunto un evento di tipo: " + event.name () + ", size: " + e.size);
                         } catch (InstantiationException ex) {
                             ex.printStackTrace ();
                         } catch (IllegalAccessException ex) {
@@ -124,6 +140,7 @@ public class Time extends Thread {
 
     public void cycleWorld() {
         long start = System.nanoTime ();
+        count = 0;
         for (ArrayList<Enviro> row : w.getMap ()) {
             for (Enviro e : row) {
                 cycleEnviro (e);

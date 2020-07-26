@@ -1,6 +1,5 @@
 package base;
 
-import baseCells.Food;
 import baseCells.FreshWater;
 import enumLists.CellList;
 
@@ -12,6 +11,7 @@ public class Critter implements Comparable<Critter> {
     public static int tDeaths = 0;
     public static int fDeaths = 0;
     public static int aDeaths = 0;
+    public static int kDeaths = 0;
     public String name;
     public ArrayDeque<int[]> path;
     private Enviro enviro;
@@ -23,8 +23,8 @@ public class Critter implements Comparable<Critter> {
     private double hunger = 0;
     private double baseSpeed;
     private double movementProgress = 0;
-    private int maxThirst = 100;
-    private int maxHunger = 100;
+    private final DecisionalCore decisionalCore;
+    private double maxThirst = 100;
     private int range = 8; //HARDCODED FOR NOW
     private double speed = 2;
     private int mateTolerance;
@@ -32,12 +32,13 @@ public class Critter implements Comparable<Critter> {
     private double foodEff;
     private double waterEff;
     private double height;
+    private double maxHunger = 100;
     private double webbedFeet;
     private double aggressiveness;
     private boolean alerted;
     private int dietType;
     private int timeToLive;
-    private DecisionalCore decisionalCore;
+    private double size;
     private boolean alive = true;
     private double age = 0;
     private int mateCooldown;
@@ -50,7 +51,7 @@ public class Critter implements Comparable<Critter> {
 
     public Critter(String name, World w, int absx, int absy) {
         this (name, w, absx, absy, new GenCode (w.getR ()));
-        this.age = 10;
+        this.age = 80;
         //EXPERIMENT
     }
 
@@ -70,7 +71,12 @@ public class Critter implements Comparable<Critter> {
         this.code = code;
         this.decisionalCore = new DecisionalCore (this);
         this.buildTraits ();
-        this.mateTolerance = 16;
+        this.size++; //0-->1
+        this.range = (int) Math.round (size) + 3;
+        this.maxHunger = (int) (this.maxHunger * size);
+        this.maxThirst = (int) (this.maxThirst * size);
+        this.hunger = this.maxHunger / 3;
+        this.thirst = this.maxThirst / 3;
     }
 
     public static double shiftToRange(double rangeStart, double rangeEnd, int value, int subdivisions) {
@@ -78,16 +84,16 @@ public class Critter implements Comparable<Critter> {
     }
 
     public void buildTraits() {
-        this.mateTolerance = code.getCardinality ("AppearanceTolerance");
         this.mateRate = shiftToRange (0.5, 2, code.getDecimal ("MateRate"), 256);
         this.foodEff = shiftToRange (1, 1, code.getDecimal ("FoodEff"), 256);
         this.waterEff = shiftToRange (1, 1, code.getDecimal ("WaterEff"), 256);
         this.baseSpeed = shiftToRange (0.5, 2, code.getDecimal ("BaseSpeed"), 256) + world.getR ().nextDouble () / 2 - 0.25;
         this.height = shiftToRange (0.5, 4, code.getDecimal ("Height"), 256);
         this.webbedFeet = shiftToRange (0, 3, code.getDecimal ("WebbedFeet"), 256);
-        this.aggressiveness = shiftToRange (0, 1, code.getDecimal ("Aggressiveness"), 256);
+        this.aggressiveness = shiftToRange (0, 10, code.getCardinality ("Aggressiveness"), 256);
+        this.size = code.getCardinality ("Size");
         this.dietType = code.getCardinality ("DietType");
-        this.timeToLive = (int) (300 + (world.getR ().nextInt (50)) - (mateRate * 80));
+        this.timeToLive = (int) ((300 + (world.getR ().nextInt (50)) - (mateRate * 80)) * size);
         this.mateCooldown = (int) (45 * mateRate * 2);
     }
 
@@ -110,8 +116,8 @@ public class Critter implements Comparable<Critter> {
             action += "Ded";
             return;
         } else {
-            this.thirst += 0.1 * foodEff;
-            this.hunger += 0.05 * waterEff;
+            this.thirst += 0.1 * waterEff * size;
+            this.hunger += 0.05 * foodEff * size;
             this.age += 0.1;
             if (mateElapsedTime > 0) {
                 mateElapsedTime--;
@@ -136,30 +142,31 @@ public class Critter implements Comparable<Critter> {
     }
 
     public boolean eatOnCell() {
-        Food food = ((Food) cell);
         double maxAmount = 0;
         double maxMult = 0;
         int max = -1;
-        for (int i = 0; i < food.getFoodTypes ().size (); i++) {
-            int type = food.getFoodTypes ().get (i);
+        for (int i = 0; i < cell.getFoodTypes ().size (); i++) {
+            int type = cell.getFoodTypes ().get (i);
             double mult = 1;
             if (dietType != type && type != 8) {
                 if (dietType + 1 == type || dietType - 1 == type) {
-                    mult = 0.7;
+                    mult = 0.5; //mult vicino alla dieta
                 } else {
-                    mult = 0;
+                    mult = 0; //mult lontano dalla dieta
                 }
             }
-            if (mult * food.getFoodAmount (i) > maxAmount) {
+            if (mult * cell.getEatable (i) > maxAmount) {
                 maxMult = mult;
-                maxAmount = mult * food.getFoodAmount (i);
+                maxAmount = mult * cell.getEatable (i);
                 max = i;
             }
         }
-        if (max != -1) {
-            double amount = food.onEat (this, max) * maxMult;
-            if (amount * hunger > 5) {
-                this.setHunger (this.getHunger () - amount);
+        if (max != -1) {   //MODFICATO, RICHIEDE PIÙ CIBO ALL'INCREMENTARE DELLA TAGLIA E MANGIA PIÙ CIBO AL TURNO ALL'INCREMENTARE DI QUEST'ULTIMA
+            double amount = cell.getEatable (max);
+            if ((amount * (hunger - (thirst / 2))) / size > (maxHunger / 50)) {
+                this.setHunger (this.getHunger () - amount * maxMult * size);
+                cell.removeFood (max, amount * size);
+                cell.onEat (this);
                 return true;
             }
         }
@@ -170,13 +177,40 @@ public class Critter implements Comparable<Critter> {
         ((FreshWater) this.cell).onDrink (this);
     }
 
+
     public void reproduce(Critter father) {
         Critter child = new Critter ("Salino", world, absx, absy, father, this);
         world.getCritters ().add (child);
         this.enviro.getCritters ().add (child);
         this.mateElapsedTime = mateCooldown;
-        this.hunger += 20;
-        this.thirst += 20;
+        this.hunger += this.maxHunger / 7;
+        this.thirst += this.maxThirst / 7;
+    }
+
+    //CELLULAR FUNCTIONS
+
+    public void split() {
+        Critter child = new Critter ("Beehhh", world, absx, absy, this.code);
+        child.getCode ().mutate (world.getR ());
+        world.getCritters ().add (child);
+        this.enviro.getCritters ().add (child);
+        this.hunger += this.maxHunger / 2;
+        this.thirst += this.maxThirst / 2;
+    }
+
+    public void eatSun() {
+        Enviro e = this.getEnviro ();
+        int shared = 0;
+        for (Critter c : e.getCritters ()) {
+            if (c.getSize () == this.getSize ()) {
+                shared++;
+            }
+        }
+        double amount = (1 - (shared * 0.3)) * this.size;
+        if (amount < 0) {
+            amount = 0;
+        }
+        this.hunger -= amount;
     }
 
     public void moveTo(int absx, int absy) {
@@ -188,8 +222,8 @@ public class Critter implements Comparable<Critter> {
             this.enviro.getCritters ().remove (this);
             this.enviro = cell.getEnviro ();
             this.enviro.getCritters ().add (this);
-            this.hunger += 0.1 * foodEff * baseSpeed / 2;
-            this.thirst += 0.05 * waterEff * baseSpeed / 2;
+            this.hunger += 0.1 * foodEff * baseSpeed * size * 0.5;
+            this.thirst += 0.05 * waterEff * baseSpeed * size * 0.5;
         }
     }
 
@@ -198,8 +232,10 @@ public class Critter implements Comparable<Critter> {
             double speed = other.speed;
             double occ = CellList.valueOf (other.getCell ().getType ()).getOccultation ();
             double camo = 1;
-            int n = this.world.getR ().nextInt ((int) ((1 / speed) * occ * camo * 2));
-            if (n == 0) {
+            double chance = ((1.0 / speed) * occ * camo * 2.0);
+            System.out.println (chance);
+            int n = this.world.getR ().nextInt ((int) (chance * 100));
+            if (n < 50) {
                 this.alert (other);
             }
         }
@@ -207,7 +243,7 @@ public class Critter implements Comparable<Critter> {
 
     public void alert(Critter other) {
         BitSet appear = other.code.getGene ("AppearanceCluster");
-        int n = this.code.getHammingDiff ("RecognitionCluster", appear);
+        int n = this.code.getHammingDiff ("AppearanceRecognition", appear);
         if (n > 6) {
             decisionalCore.setBehaviour ("flee");
             decisionalCore.setInteracting (other);
@@ -249,7 +285,7 @@ public class Critter implements Comparable<Critter> {
         this.thirst = thirst;
     }
 
-    public int getMaxThirst() {
+    public double getMaxThirst() {
         return maxThirst;
     }
 
@@ -265,7 +301,7 @@ public class Critter implements Comparable<Critter> {
         this.hunger = hunger;
     }
 
-    public int getMaxHunger() {
+    public double getMaxHunger() {
         return maxHunger;
     }
 
@@ -399,6 +435,14 @@ public class Critter implements Comparable<Critter> {
 
     public void setWebbedFeet(double webbedFeet) {
         this.webbedFeet = webbedFeet;
+    }
+
+    public double getSize() {
+        return size;
+    }
+
+    public void setSize(double size) {
+        this.size = size;
     }
 
     public Cell getCell() {

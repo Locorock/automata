@@ -7,7 +7,7 @@ import baseCells.Tree;
 public class FruitTree extends Tree {
     double fruits;
     static final double growthRateA = 1.5;
-    static final double growthRateB = 8;
+    static final double growthRateB = 6;
     public FruitTree(String type, Enviro enviro) {
         super (type, enviro, growthRateA, true);
         foods.addFood (growthRateB, 4, 0, growthRateB * enviro.getHumidity ());

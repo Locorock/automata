@@ -11,10 +11,6 @@ public class Lava extends Cell implements Solid {
     }
 
     @Override
-    public void tick() {
-    }
-
-    @Override
     public void onPassage(Critter critter) {
         critter.setSpeed (critter.getBaseSpeed () * 0.3);
     }

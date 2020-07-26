@@ -12,6 +12,7 @@ public class SwampWater extends LowWater implements FreshWater {
 
     @Override
     public void onDrink(Critter critter) {
+        super.tick ();
         super.onDrink (critter);
         critter.setAge (critter.getAge () + 0.05 * critter.getMateRate ());
     }

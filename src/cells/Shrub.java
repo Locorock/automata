@@ -11,13 +11,6 @@ public class Shrub extends Bush {
     }
 
     @Override
-    public void tick() {
-        if (alive) {
-            super.tick ();
-        }
-    }
-
-    @Override
     public void onPassage(Critter critter) {
         super.onPassage (critter);
     }

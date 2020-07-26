@@ -4,13 +4,10 @@ import base.Critter;
 import base.Enviro;
 import base.Foods;
 
-import java.util.ArrayList;
-
-public abstract class Tree extends Living implements Food {
+public abstract class Tree extends Living {
     protected double height;
     protected boolean deciduous = true;
     protected int baseH;
-    protected Foods foods;
 
     public Tree(String type, Enviro enviro, double growthRate, boolean deciduous) {
         super (type, enviro, 200);
@@ -24,31 +21,11 @@ public abstract class Tree extends Living implements Food {
     @Override
     public void tick() {
         super.tick ();
-        foods.grow ();
         this.height = this.height + (enviro.getHumidity () / (baseH * 100));
-    }
-
-    @Override
-    public double onEat(Critter critter, int index) {
-        return foods.eatFood (index);
-    }
-    @Override
-    public ArrayList<Integer> getFoodTypes() {
-        return foods.getFoodTypes ();
-    }
-
-    @Override
-    public Double getFoodAmount(int index) {
-        return foods.getFoodAmount (index);
     }
 
     public void onPassage(Critter critter) {
         critter.setSpeed (critter.getBaseSpeed () * 0.8);
-    }
-
-    @Override
-    public void init() {
-        foods.init ();
     }
 
     public double getHeight() {
@@ -66,6 +43,4 @@ public abstract class Tree extends Living implements Food {
     public void setDeciduous(boolean deciduous) {
         this.deciduous = deciduous;
     }
-
-
 }

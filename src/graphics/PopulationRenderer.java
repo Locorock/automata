@@ -34,7 +34,7 @@ public class PopulationRenderer extends JPanel {
                         avg += c.getCode ().getGene (name).cardinality ();
                     }
                     if (index[2] == 2) {
-                        jp.setMaximum (256);
+                        jp.setMaximum ((int) Math.pow (2, GeneLibrary.GeneIds.valueOf (name).getSize ()));
                         avg += GenCode.convert (c.getCode ().getGene (name));
                     }
                 }
@@ -62,7 +62,7 @@ public class PopulationRenderer extends JPanel {
         }
         JProgressBar jp = new JProgressBar (SwingConstants.HORIZONTAL);
         jp.setPreferredSize (new Dimension (600, 50));
-        jp.setMaximum (100);
+        jp.setMaximum ((int) critters.get (0).getMaxHunger ());
         jp.setStringPainted (true);
         jp.setString ("Hunger");
         jp.setValue ((int) critters.get (0).getHunger ());
@@ -70,7 +70,7 @@ public class PopulationRenderer extends JPanel {
         this.add (jp);
         jp = new JProgressBar (SwingConstants.HORIZONTAL);
         jp.setPreferredSize (new Dimension (600, 50));
-        jp.setMaximum (100);
+        jp.setMaximum ((int) critters.get (0).getMaxThirst ());
         jp.setStringPainted (true);
         jp.setString ("Thirst");
         jp.setValue ((int) critters.get (0).getThirst ());

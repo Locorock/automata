@@ -12,10 +12,6 @@ public class SaltWater extends Cell implements Solid, FreshWater {
     }
 
     @Override
-    public void tick() {
-    }
-
-    @Override
     public void onPassage(Critter critter) {
         critter.setSpeed (critter.getBaseSpeed () * 0.6 + critter.getWebbedFeet ());
     }

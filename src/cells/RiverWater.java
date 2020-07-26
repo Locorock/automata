@@ -20,8 +20,4 @@ public class RiverWater extends Cell implements Solid, FreshWater {
     public void onDrink(Critter critter) {
         critter.setThirst (critter.getThirst () - 3);
     }
-
-    @Override
-    public void tick() {
-    }
 }

@@ -11,11 +11,6 @@ public class RockySoil extends Cell implements Solid {
     }
 
     @Override
-    public void tick() {
-
-    }
-
-    @Override
     public void onPassage(Critter critter) {
         critter.setSpeed (critter.getBaseSpeed () * 1);
     }

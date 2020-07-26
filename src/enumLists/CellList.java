@@ -8,7 +8,6 @@ public enum CellList {
     BerryBush (3, 6, true, Arrays.asList ("Forest", "Plains", "Taiga"), 1.5),
     BirthingBoughs (3, 0.3, true, Arrays.asList ("PrimSoup", "Plains", "Forest", "Desert", "Wetlands", "Savanna", "Taiga"), 1),
     Cactus (3, 16, true, Arrays.asList ("Desert"), 1.2),
-    Carcass (4, 1, true, Arrays.asList (""), 1),
     Dirt (1, -1, true, Arrays.asList ("Forest", "Savanna", "Wetland", "Jungle", "Steppe"), 1),
     ForestTree (3, 6, true, Arrays.asList ("Forest", "Jungle", "Wetland"), 1.3),
     FruitTree (3, 6, true, Arrays.asList ("Forest", "Jungle", "Taiga"), 1.3),

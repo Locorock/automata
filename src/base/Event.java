@@ -51,7 +51,6 @@ public abstract class Event {
         }
 
         this.affected = epicenter.scanNeighbours (size);
-        System.out.println ("Duration: " + duration);
     }
 
     public int getSeed() {

@@ -3,7 +3,6 @@ package graphics;
 import base.Critter;
 import base.Enviro;
 import base.World;
-import baseCells.Food;
 import baseCells.FreshWater;
 import cells.SaltWater;
 
@@ -18,10 +17,11 @@ import java.util.Vector;
 public class WorldRender extends JPanel implements MouseMotionListener, MouseListener {
     private Enviro enviro;
     private int width;
-    private int wUnit, hUnit;
-    private World w;
-    private JFrame f;
-    private boolean init = false;
+    private final int wUnit;
+    private final int hUnit;
+    private final World w;
+    private final JFrame f;
+    private final boolean init = false;
     private int xSelected;
     private int ySelected;
     private Rectangle2D select;
@@ -119,8 +119,8 @@ public class WorldRender extends JPanel implements MouseMotionListener, MouseLis
             }
             */
             c = Color.black;
-            if (current instanceof Food) {
-                c = getGreyscale ((int) Math.round (((Food) current).getFoodAmount (0)) * 8);
+            if (current.getFoods () != null) {
+                c = getGreyscale ((int) Math.round (current.getFoodAmount (0)) * 8);
             }
             if (current instanceof FreshWater || current instanceof SaltWater) {
                 c = Color.blue;

@@ -4,7 +4,6 @@ import base.Cell;
 import base.Critter;
 import base.Enviro;
 import base.World;
-import baseCells.Food;
 import baseCells.FreshWater;
 import cells.RiverWater;
 
@@ -17,15 +16,18 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.TreeSet;
+import java.util.concurrent.CountDownLatch;
 
 public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener, MouseListener, MouseWheelListener {
     private Enviro enviro;
     private int width;
-    private int wUnit, hUnit;
+    private final int wUnit;
+    private final World w;
     private double zoom = 1;
-    private World w;
-    private JFrame f;
-    private boolean init = false;
+    private final JFrame f;
+    private final boolean init = false;
+    private int hUnit;
+    private boolean biomeView = false;
     private int selectionOriginX = 0;
     private int selectionOriginY = 0;
     private int selectionEndX = 0;
@@ -42,6 +44,7 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     public double lastCycleTime = 0;
     private int count = 0;
     private Cell cellSelected;
+    private CountDownLatch latch;
     private AffineTransform translate;
     private AffineTransform scale;
 
@@ -56,10 +59,18 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     }
 
     public static Color getGreyscale(double num) {
-        float h = Color.RGBtoHSB (0, (int) num, 0, null)[0];
-        float s = Color.RGBtoHSB (0, (int) num, 0, null)[1];
-        float b = Color.RGBtoHSB (0, (int) num, 0, null)[2];
-        return Color.getHSBColor (h, s, b);
+        float[] color = Color.RGBtoHSB (0, (int) num, 0, null);
+        return Color.getHSBColor (color[0], color[1], color[2]);
+    }
+
+    public static Color getRedScale(double num) {
+        float[] color = Color.RGBtoHSB ((int) num, 0, 0, null);
+        return Color.getHSBColor (color[0], color[1], color[2]);
+    }
+
+    public void update(CountDownLatch latch) {
+        this.latch = latch;
+        this.repaint ();
     }
 
     @Override
@@ -77,59 +88,64 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
         ((ArrayList<ArrayList<Enviro>>) w.getMap ().clone ()).forEach (current -> {
             ((ArrayList<Enviro>) current.clone ()).forEach (currentEnviro -> {
                 Color c = null;
-                switch (currentEnviro.getBiome ()) {
-                    case "Ocean": {
-                        c = Color.decode ("#0077E0");
-                        break;
+                if (biomeView) {
+                    switch (currentEnviro.getBiome ()) {
+                        case "Ocean": {
+                            c = Color.decode ("#0077E0");
+                            break;
+                        }
+                        case "Forest": {
+                            c = Color.decode ("#0CFF00");
+                            break;
+                        }
+                        case "Plains": {
+                            c = Color.decode ("#4AB004");
+                            break;
+                        }
+                        case "Taiga": {
+                            c = Color.decode ("#0E4B00");
+                            break;
+                        }
+                        case "Tundra": {
+                            c = Color.decode ("#974A1C");
+                            break;
+                        }
+                        case "Jungle": {
+                            c = Color.green;
+                            break;
+                        }
+                        case "Savanna": {
+                            c = Color.yellow;
+                            break;
+                        }
+                        case "Arctic": {
+                            c = Color.decode ("#7DCB8C");
+                            break;
+                        }
+                        case "PrimSoup": {
+                            c = Color.decode ("#A44A4A");
+                            break;
+                        }
+                        case "Desert": {
+                            c = Color.decode ("#5087FF");
+                            break;
+                        }
+                        case "Wetland": {
+                            c = Color.decode ("#42B260");
+                            break;
+                        }
+                        case "Steppe": {
+                            c = Color.decode ("#A7D87A");
+                            break;
+                        }
+                        default: {
+                            c = Color.lightGray;
+                        }
                     }
-                    case "Forest": {
-                        c = Color.decode ("#0CFF00");
-                        break;
-                    }
-                    case "Plains": {
-                        c = Color.decode ("#4AB004");
-                        break;
-                    }
-                    case "Taiga": {
-                        c = Color.decode ("#0E4B00");
-                        break;
-                    }
-                    case "Tundra": {
-                        c = Color.decode ("#974A1C");
-                        break;
-                    }
-                    case "Jungle": {
-                        c = Color.green;
-                        break;
-                    }
-                    case "Savanna": {
-                        c = Color.yellow;
-                        break;
-                    }
-                    case "Arctic": {
-                        c = Color.decode ("#7DCB8C");
-                        break;
-                    }
-                    case "PrimSoup": {
-                        c = Color.decode ("#A44A4A");
-                        break;
-                    }
-                    case "Desert": {
-                        c = Color.decode ("#5087FF");
-                        break;
-                    }
-                    case "Wetland": {
-                        c = Color.decode ("#42B260");
-                        break;
-                    }
-                    case "Steppe": {
-                        c = Color.decode ("#A7D87A");
-                        break;
-                    }
-                    default: {
-                        c = Color.lightGray;
-                    }
+                } else {
+                    c = getGreyscale (currentEnviro.getCritters ().size () * 30);
                 }
+
                 g.setColor (c);
 
                 Rectangle2D r = new Rectangle (wUnit * currentEnviro.getX (), wUnit * currentEnviro.getY (), Math.round (wUnit), Math.round (wUnit));
@@ -147,44 +163,40 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
                             }
                         }
                     }
-                    if (currentEnviro.getBiome () != "Ocean" && zoom > renderThreshold) {
-                        Cell[][] grid = currentEnviro.getGrid ();
-                        for (Cell[] row : grid) {
-                            for (Cell cell : row) {
-                                g.setColor (Color.black);
-                                if (cell instanceof Food) {
-                                    Food f = ((Food) cell);
-                                    int amount = (int) (f.getFoodAmount (0) * 15);
-                                    if (f.getFoodTypes ().size () > 1) {
-                                        amount += (int) (f.getFoodAmount (1) * 15);
+                    if (zoom > renderThreshold) {
+                        if (currentEnviro.getBiome () != "Ocean#") { // TEST #
+                            Cell[][] grid = currentEnviro.getGrid ();
+                            for (Cell[] row : grid) {
+                                for (Cell cell : row) {
+                                    g.setColor (Color.black);
+                                    if (cell instanceof FreshWater) {
+                                        g.setColor (Color.blue);
                                     }
-                                    g.setColor (getGreyscale (amount));
+                                    if (cell.getFoods () != null) {
+                                        int amount = (int) (cell.getFoodAmount (0) * 15);
+                                        if (cell.getFoodTypes ().size () > 1) {
+                                            amount += (int) (cell.getFoodAmount (1) * 15);
+                                        }
+                                        g.setColor (getGreyscale (amount));
+                                    }
+                                    r = new Rectangle (2 * cell.getAbsX (), 2 * cell.getAbsY (), 2, 2);
+                                    g.fill (r);
                                 }
-                                if (cell instanceof FreshWater) {
-                                    g.setColor (Color.blue);
-                                }
-                                r = new Rectangle (2 * cell.getAbsX (), 2 * cell.getAbsY (), 2, 2);
-                                g.fill (r);
                             }
                         }
+                        currentEnviro.getCritters ().forEach (critter -> {
+                            if (critter.getSize () >= 0) {
+                                Rectangle2D re = new Rectangle (2 * critter.getAbsx (), 2 * critter.getAbsy (), 2, 2);
+                                g.setColor (getRedScale (critter.getSize () * 100));
+                                g.fill (re);
+                            }
+                        });
                     }
                 }
-
             });
         });
-        ((TreeSet<Critter>) w.getCritters ().clone ()).forEach (current -> {
-            Rectangle2D r = new Rectangle (2 * current.getAbsx (), 2 * current.getAbsy (), 2, 2);
-            if (current.getDietType () < 6) {
-                g.setColor (Color.red);
-            }
-            if (current.getDietType () < 4) {
-                g.setColor (Color.orange);
-            }
-            if (current.getDietType () < 2) {
-                g.setColor (Color.pink);
-            }
-            g.fill (r);
-        });
+
+        g.setColor (Color.red);
         g.drawRect (selectionOriginX, selectionOriginY, selectionEndX - selectionOriginX, selectionEndY - selectionOriginY);
         g.setFont (g.getFont ().deriveFont ((float) (g.getFont ().getSize () / zoom)));
         g.drawString (String.valueOf (count), selectionOriginX, selectionOriginY);
@@ -192,14 +204,19 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
         g.drawString (String.valueOf (lastCycleTime), (int) (g.getClipBounds ().getX () + 40 / zoom), (int) (g.getClipBounds ().getY () + 40 / zoom));
         if (cellSelected != null) {
             g.drawString (String.valueOf (cellSelected.type), (int) (g.getClipBounds ().getX () + 40 / zoom), (int) (g.getClipBounds ().getY () + 80 / zoom));
-            if (cellSelected instanceof Food) {
-                Food f = (Food) cellSelected;
-                g.drawString (f.getFoodAmount (0) + "", (int) (g.getClipBounds ().getX () + 120 / zoom), (int) (g.getClipBounds ().getY () + 80 / zoom));
+            if (cellSelected.getFoods () != null) {
+                g.drawString (cellSelected.getFoodAmount (0) + "", (int) (g.getClipBounds ().getX () + 120 / zoom), (int) (g.getClipBounds ().getY () + 80 / zoom));
+                g.drawString (cellSelected.getFoods ().growthRates.get (0) + "", (int) (g.getClipBounds ().getX () + 480 / zoom), (int) (g.getClipBounds ().getY () + 80 / zoom));
             }
         }
         g.drawString (String.valueOf (Critter.fDeaths), (int) (g.getClipBounds ().getX () + 400 / zoom), (int) (g.getClipBounds ().getY () + 40 / zoom));
         g.drawString (String.valueOf (Critter.tDeaths), (int) (g.getClipBounds ().getX () + 440 / zoom), (int) (g.getClipBounds ().getY () + 40 / zoom));
         g.drawString (String.valueOf (Critter.aDeaths), (int) (g.getClipBounds ().getX () + 480 / zoom), (int) (g.getClipBounds ().getY () + 40 / zoom));
+        g.drawString (String.valueOf (Critter.kDeaths), (int) (g.getClipBounds ().getX () + 520 / zoom), (int) (g.getClipBounds ().getY () + 40 / zoom));
+        if (latch != null) {
+            this.latch.countDown ();
+        }
+
     }
 
     public int translateOnScale(int coordinate, boolean horizontal) {
@@ -241,6 +258,9 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
             System.out.println (x + " - " + y);
             this.cellSelected = w.getAbsCell ((int) Math.round ((x - 1) / 2.0), (int) Math.round ((y - 1) / 2.0));
         }
+        if (SwingUtilities.isRightMouseButton (mouseEvent) && mouseEvent.isShiftDown ()) {
+            biomeView = !biomeView;
+        }
     }
 
 
@@ -251,6 +271,13 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
             selectionOriginY = getAbsoluteCoordinates (mouseEvent.getY (), false);
             selectionEndX = selectionOriginX;
             selectionEndY = selectionOriginY;
+            count = 0;
+            for (Critter current : (TreeSet<Critter>) w.getCritters ().clone ()) {
+                if (current.getAbsx () * 2 < selectionEndX && current.getAbsy () * 2 < selectionEndY && current.getAbsx () * 2 > selectionOriginX && current.getAbsy () * 2 > selectionOriginY) {
+                    count++;
+                }
+            }
+            System.out.println (count);
             repaint ();
         } else {
             if (SwingUtilities.isMiddleMouseButton (mouseEvent)) {
@@ -277,6 +304,7 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
                     critters.add (current);
                 }
             }
+            count = critters.size ();
             JFrame jf = new JFrame ();
             jf.setLayout (new GridLayout (2, 1));
             jf.setSize (600, 30 * 32);
@@ -291,6 +319,10 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
                 jp.add (desc);
                 System.out.println (desc.getText ());
             }
+            JLabel desc = new JLabel (String.valueOf (critters.get (0).getSize ()));
+            jp.add (desc);
+            JLabel desc2 = new JLabel (String.valueOf (critters.get (0).getAggressiveness ()));
+            jp.add (desc2);
             jf.add (jp);
 
         } else {

@@ -19,7 +19,7 @@ public class World {
     private Random r;
     private ArrayList<Enviro> enviros = new ArrayList<> ();
     private BitSet[] cellId;
-    private int enviroWidth = Enviro.width;
+    private final int enviroWidth = Enviro.width;
     public AdvancedWorldRenderer panel;
     private int fullWidth;
     private int fullHeight;
@@ -94,8 +94,8 @@ public class World {
         double max = 0;
         for (int i = 0; i < map.length; i++) {
             for (int j = 0; j < map.length; j++) {
-                int distx = Math.abs (j - centerX);
-                int disty = Math.abs (i - centerY);
+                int distx = Math.abs (j - centerX) * 2;
+                int disty = Math.abs (i - centerY) * 2;
                 grad[i][j] = Math.sqrt (distx * distx + disty * disty);
                 if (grad[i][j] > max) {
                     max = grad[i][j];
@@ -112,14 +112,41 @@ public class World {
         }
         for (int i = 0; i < map.length; i++) {
             for (int j = 0; j < map.length; j++) {
+                grad[i][j] = max2 - grad[i][j];
                 grad[i][j] /= max2;
-                grad[i][j] = 1 - grad[i][j];
-                result[i][j] = (float) ((grad[i][j] * map[i][j]) - 0.2);
+                result[i][j] = (float) ((grad[i][j] / 1.5) * map[i][j]);   //ATTENZIONE, ALTA MATEMATICA, CAMBIA IL NUMERO PER L'OFFSET E SBATTITENE
             }
         }
         for (int i = 0; i < grad.length; i++) {
             for (int j = 0; j < grad.length; j++) {
-                System.out.print (grad[i][j]);
+                System.out.print (" " + grad[i][j] + " ");
+            }
+            System.out.println ();
+        }
+
+        return result;
+    }
+
+    private float[][] circularFilterNew(float[][] map) {
+        float[][] result = new float[map.length][map.length];
+        int centerX = size / 2, centerY = size / 2;
+        double[][] grad = new double[map.length][map.length];
+        double max = 0;
+        for (int i = 0; i < map.length; i++) {
+            for (int j = 0; j < map.length; j++) {
+                int distx = Math.abs (j - centerX);
+                int disty = Math.abs (i - centerY);
+                grad[i][j] = 800 / (distx * distx + disty * disty + 1);
+            }
+        }
+        for (int i = 0; i < map.length; i++) {
+            for (int j = 0; j < map.length; j++) {
+                result[i][j] = (float) ((grad[i][j]) * map[i][j]);   //ATTENZIONE, ALTA MATEMATICA, CAMBIA IL NUMERO PER L'OFFSET E SBATTITENE
+            }
+        }
+        for (int i = 0; i < grad.length; i++) {
+            for (int j = 0; j < grad.length; j++) {
+                System.out.print (" " + grad[i][j] + " ");
             }
             System.out.println ();
         }
@@ -128,7 +155,7 @@ public class World {
     }
 
     private void generateWorldSimplex(int size, int skew, int magnitude) {
-        float[][] heightMap = circularFilter (generateOctavedSimplexNoise (size, size, 5, 0.1f, 0.1f, r));
+        float[][] heightMap = circularFilterNew (generateOctavedSimplexNoise (size, size, 4, 0.05f, 0.09f, r));
         float[][] heatMap = generateOctavedSimplexNoise (size, size, 3, 0.1f, 0.01f, r);
         float[][] humidityMap = generateOctavedSimplexNoise (size, size, 3, 0.1f, 0.01f, r);
         map = new ArrayList<ArrayList<Enviro>> ();
