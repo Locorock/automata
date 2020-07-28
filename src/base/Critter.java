@@ -209,18 +209,23 @@ public class Critter implements Comparable<Critter> {
         this.hunger -= amount;
     }
 
-    public void moveTo(int absx, int absy) {
-        if (absx > world.getFullWidth ()) {
-            absx = absx - world.getFullWidth ();
+    public boolean moveTo(int absx, int absy) {
+        boolean linear = true;
+        if (this.absx == world.getFullWidth () - 1 && absx == world.getFullWidth ()) {
+            absx = 0;
+            linear = false;
         }
-        if (absx < 0) {
-            absx = absx + world.getFullWidth ();
+        if (this.absx == 0 && absx < 0) {
+            absx = world.getFullWidth () - 1;
+            linear = false;
         }
-        if (absy > world.getFullHeight ()) {
-            absy = absy - world.getFullHeight ();
+        if (this.absy == world.getFullHeight () - 1 && absy == world.getFullHeight ()) {
+            absy = 0;
+            linear = false;
         }
-        if (absy < 0) {
-            absy = absy + world.getFullHeight ();
+        if (this.absy == 0 && absy < 0) {
+            absy = world.getFullHeight () - 1;
+            linear = false;
         }
 
         Cell c = world.getAbsCell (absx, absy);
@@ -234,6 +239,7 @@ public class Critter implements Comparable<Critter> {
             this.hunger += 0.1 * foodEff * baseSpeed * size * 0.5;
             this.thirst += 0.05 * waterEff * baseSpeed * size * 0.5;
         }
+        return linear;
     }
 
     public void triggerPerception(Critter other) {
@@ -520,5 +526,10 @@ public class Critter implements Comparable<Critter> {
 
     public void setAggressiveness(double aggressiveness) {
         this.aggressiveness = aggressiveness;
+    }
+
+    @Override
+    public String toString() {
+        return this.name;
     }
 }

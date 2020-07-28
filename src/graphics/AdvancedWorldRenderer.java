@@ -18,7 +18,7 @@ import java.util.Arrays;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
 
-public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener, MouseListener, MouseWheelListener {
+public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, WindowListener {
     private Enviro enviro;
     private int width;
     private final int wUnit;
@@ -27,7 +27,7 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     private final JFrame f;
     private final boolean init = false;
     private int hUnit;
-    private boolean biomeView = false;
+    private final ArrayList<CritterRender> openRenders;
     private int selectionOriginX = 0;
     private int selectionOriginY = 0;
     private int selectionEndX = 0;
@@ -40,7 +40,7 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     private int cameraPosY = 0;
     private int dragStartX = 0;
     private int dragStartY = 0;
-    private double renderThreshold = 5;
+    private final ArrayList<Critter> following;
     public int totalAmount = 0;
     public double lastCycleTime = 0;
     private int count = 0;
@@ -52,6 +52,8 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     private boolean showAll = false;
     private boolean humidityView = false;
     private AffineTransform transform = null;
+    private boolean biomeView = true;
+    private double renderThreshold = 15;
 
     public AdvancedWorldRenderer(World w, JFrame f) {
         this.w = w;
@@ -60,7 +62,10 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
         this.addMouseListener (this);
         this.addMouseMotionListener (this);
         this.addMouseWheelListener (this);
+        f.addKeyListener (this);
         System.out.println (oldPosX + " - " + oldPosY);
+        openRenders = new ArrayList<CritterRender> ();
+        following = new ArrayList<Critter> ();
         repaint ();
         validate ();
     }
@@ -70,19 +75,28 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
         return Color.getHSBColor (color[0], color[1], color[2]);
     }
 
-    public static Color getRedScale(double num) {
-        float[] color = Color.RGBtoHSB ((int) num, 0, 0, null);
-        return Color.getHSBColor (color[0], color[1], color[2]);
+    public static Color getRedScale(double num, Color c) {
+        float[] color = Color.RGBtoHSB ((int) (c.getRed () + num * 10), c.getGreen (), c.getBlue (), null);
+        return Color.getHSBColor (color[0], color[1], (float) (color[2] - num / 30.0));
     }
 
     public void update(CountDownLatch latch) {
         this.latch = latch;
+        following.clear ();
+        System.out.println ("follow");
+        for (int i = 0; i < openRenders.size (); i++) {
+            CritterRender cr = openRenders.get (i);
+            cr.refresh (following);
+            System.out.println ("FRESHO");
+        }
+        System.out.println ("repaint");
         this.repaint ();
     }
 
     @Override
     public void paintComponent(Graphics graphics) {
         super.paintComponent (graphics);
+        System.out.println ("super");
         if (toInit) {
             oldPosX = this.getWidth () / 4;
             oldPosY = this.getHeight () / 4;
@@ -97,7 +111,12 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
         transform = scale;
         g.setTransform (transform);
 
-        g.setColor (Color.decode ("#0077E0"));
+        if (biomeView) {
+            g.setColor (Color.decode ("#0077E0"));
+        } else {
+            g.setColor (Color.black);
+        }
+
         g.fill (g.getClipBounds ());
 
         ((ArrayList<ArrayList<Enviro>>) w.getMap ().clone ()).forEach (current -> {
@@ -161,7 +180,14 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
                     if (humidityView) {
                         c = getGreyscale (currentEnviro.getHumidity () * 2.5);
                     } else {
-                        c = getGreyscale (currentEnviro.getCritters ().size () * 30);
+                        if (currentEnviro.getBiome () == "Ocean") {
+                            c = Color.darkGray;
+                        } else {
+                            c = Color.gray;
+                        }
+                        if (currentEnviro.getCritters ().size () > 1) {
+                            c = getRedScale (currentEnviro.getCritters ().size (), c);
+                        }
                     }
                 }
 
@@ -210,7 +236,10 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
                             currentEnviro.getCritters ().forEach (critter -> {
                                 if (critter.getSize () >= 0) {
                                     Rectangle2D re = new Rectangle (critter.getAbsx (), critter.getAbsy (), 1, 1);
-                                    g.setColor (getRedScale (critter.getSize () * 100));
+                                    g.setColor (getRedScale (critter.getSize () * 100, Color.black));
+                                    if (following.contains (critter)) {
+                                        g.setColor (Color.yellow);
+                                    }
                                     g.fill (re);
                                 }
                             });
@@ -220,11 +249,21 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
                         currentEnviro.getCritters ().forEach (critter -> {
                             if (critter.getSize () >= 0) {
                                 Rectangle2D re = new Rectangle (critter.getAbsx (), critter.getAbsy (), 1, 1);
-                                g.setColor (getRedScale (critter.getSize () * 100));
+                                g.setColor (getRedScale (critter.getSize () * 100, Color.black));
+                                if (following.contains (critter)) {
+                                    g.setColor (Color.yellow);
+                                }
                                 g.fill (re);
                             }
                         });
                     }
+                    /* WAY TOO EXPENSIVE
+                    if(!biomeView) {
+                        Color alpha = new Color (255, 0, 0, 32 * currentEnviro.getCritters ().size () % 255);
+                        g.setColor (alpha);
+                        g.fill (r);
+                    }
+                     */
                 }
             });
         });
@@ -347,7 +386,7 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
             ArrayList<Critter> critters = new ArrayList<> ();
             Arrays.fill (traits, 0);
             for (Critter current : (TreeSet<Critter>) w.getCritters ().clone ()) {
-                if (current.getAbsx () * 2 < selectionEndX && current.getAbsy () * 2 < selectionEndY && current.getAbsx () * 2 > selectionOriginX && current.getAbsy () * 2 > selectionOriginY) {
+                if (current.getAbsx () < selectionEndX && current.getAbsy () < selectionEndY && current.getAbsx () > selectionOriginX && current.getAbsy () > selectionOriginY) {
                     critters.add (current);
                 }
             }
@@ -384,16 +423,6 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     }
 
     @Override
-    public void mouseEntered(MouseEvent mouseEvent) {
-
-    }
-
-    @Override
-    public void mouseExited(MouseEvent mouseEvent) {
-
-    }
-
-    @Override
     public void mouseDragged(MouseEvent mouseEvent) {
         if (SwingUtilities.isLeftMouseButton (mouseEvent)) {
             selectionEndX = getAbsolutePoint (mouseEvent.getPoint ()).x;
@@ -406,16 +435,96 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     }
 
     @Override
-    public void mouseMoved(MouseEvent mouseEvent) {
-    }
-
-    @Override
     public void mouseWheelMoved(MouseWheelEvent mouseWheelEvent) {
         zoom -= (double) mouseWheelEvent.getWheelRotation () / 2;
         if (zoom < 1) {
             zoom = 1;
         }
-        renderThreshold = 5 + (this.getWidth () * this.getHeight ()) / 520000;
+        renderThreshold = 10 + (this.getWidth () * this.getHeight ()) / 520000;
         repaint ();
+    }
+
+    @Override
+    public void keyPressed(KeyEvent keyEvent) {
+        int key = keyEvent.getKeyCode ();
+        System.out.println (key);
+        if (key == KeyEvent.VK_C) {
+            if (cellSelected != null) {
+                ArrayList<Critter> found = new ArrayList<Critter> ();
+                for (Critter c : cellSelected.enviro.getCritters ()) {
+                    if (c.getAbsx () == cellSelected.getAbsX () && c.getAbsy () == cellSelected.getAbsY ()) {
+                        found.add (c);
+                    }
+                }
+                if (!found.isEmpty ()) {
+                    JFrame f = new JFrame ();
+                    f.addWindowListener (this);
+                    f.setSize (300, 400);
+                    CritterRender cr = new CritterRender (found);
+                    f.setContentPane (cr);
+                    openRenders.add (cr);
+                    f.setVisible (true);
+                }
+
+            }
+        }
+        if (key == KeyEvent.VK_F) {
+            w.getT ().loop = true;
+        }
+    }
+
+    @Override
+    public void windowClosing(WindowEvent windowEvent) {
+        System.out.println ("CLOSED");
+        if (windowEvent.getSource () != this) {
+            CritterRender cr = (CritterRender) ((JFrame) windowEvent.getSource ()).getContentPane ();
+            openRenders.remove (cr);
+        }
+    }
+
+
+    //UNUSED LISTENERS
+    @Override
+    public void mouseEntered(MouseEvent mouseEvent) {
+    }
+
+    @Override
+    public void mouseExited(MouseEvent mouseEvent) {
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent mouseEvent) {
+    }
+
+    @Override
+    public void keyTyped(KeyEvent keyEvent) {
+    }
+
+    @Override
+    public void windowOpened(WindowEvent windowEvent) {
+    }
+
+    @Override
+    public void windowClosed(WindowEvent windowEvent) {
+    }
+
+    @Override
+    public void windowIconified(WindowEvent windowEvent) {
+    }
+
+    @Override
+    public void windowDeiconified(WindowEvent windowEvent) {
+    }
+
+    @Override
+    public void windowActivated(WindowEvent windowEvent) {
+    }
+
+    @Override
+    public void windowDeactivated(WindowEvent windowEvent) {
+    }
+
+    @Override
+    public void keyReleased(KeyEvent keyEvent) {
     }
 }

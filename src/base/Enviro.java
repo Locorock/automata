@@ -235,8 +235,6 @@ public class Enviro {
                                 if (grid[y][x].getFoods () != null) {
                                     grid[y][x].initFoods ();
                                 }
-                            } else {
-                                k--;
                             }
                         }
                     }

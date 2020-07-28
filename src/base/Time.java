@@ -19,6 +19,7 @@ public class Time extends Thread {
     private int seed;
     private final World w;
     public boolean running = false;
+    public boolean loop = false;
 
     public Time(double tickSize, int cycleSize, World w) {
         this.tickSize = tickSize;
@@ -32,36 +33,50 @@ public class Time extends Thread {
     public void run() {
         while (isAlive () && !isInterrupted ()) {
             if (running) {
-                try {
-                    double elapsed = 0;
-                    long start = System.nanoTime ();
-                    if (!w.panel.spheed) {
-                        CountDownLatch latch = new CountDownLatch (1);
-                        w.panel.update (latch);
-                        latch.await ();
-                    }
-                    tick ();
-                    ticks++;
-                    if (ticks >= cycleSize) {
-                        cycle ();
-                        ticks = 0;
-                    }
-                    elapsed = (double) (System.nanoTime () - start) / 1000000;
-                    w.panel.lastCycleTime = elapsed;
-                    w.panel.totalAmount = w.getCritters ().size ();
-                    System.out.println (elapsed + " - " + w.getCritters ().size ());
-                    if (elapsed < tickSize && tickSize != 0)
-                        sleep ((long) tickSize - (long) elapsed);
-                } catch (InterruptedException e) {
-                    e.printStackTrace ();
-                }
+                loop ();
             } else {
+                if (loop) {
+                    loop = false;
+                    loop ();
+                }
                 try {
-                    Thread.sleep (500);
+                    Thread.sleep (50);
                 } catch (InterruptedException e) {
                     e.printStackTrace ();
                 }
             }
+        }
+    }
+
+    public void loop() {
+        try {
+            System.out.println ("LOOP");
+            double elapsed = 0;
+            long start = System.nanoTime ();
+            System.out.println ("panel");
+            if (!w.panel.spheed) {
+                CountDownLatch latch = new CountDownLatch (1);
+                System.out.println ("latch " + latch);
+                w.panel.update (latch);
+                latch.await ();
+                System.out.println ("over");
+            }
+            System.out.println ("tick");
+            tick ();
+            ticks++;
+            if (ticks >= cycleSize) {
+                cycle ();
+                ticks = 0;
+            }
+            elapsed = (double) (System.nanoTime () - start) / 1000000;
+            w.panel.lastCycleTime = elapsed;
+            w.panel.totalAmount = w.getCritters ().size ();
+            System.out.println (elapsed + " - " + w.getCritters ().size ());
+            if (elapsed < tickSize && tickSize != 0)
+                sleep ((long) tickSize - (long) elapsed);
+            System.out.println ("LOOPEND");
+        } catch (InterruptedException e) {
+            e.printStackTrace ();
         }
     }
 

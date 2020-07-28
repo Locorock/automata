@@ -72,8 +72,9 @@ public class DecisionalCore {
                             while (owner.getMovementProgress () > 1 && !path.isEmpty ()) {
                                 owner.setMovementProgress (owner.getMovementProgress () - (1 / owner.getSpeed ()));
                                 int[] next = path.removeFirst ();
-                                owner.moveTo (next[0], next[1]);
-                                ((Solid) owner.getWorld ().getAbsCell (next[0], next[1])).onPassage (owner);
+                                if (owner.moveTo (next[0], next[1])) {
+                                    ((Solid) owner.getWorld ().getAbsCell (next[0], next[1])).onPassage (owner);
+                                }
                             }
                         } else { //PRIORITA FOTTUTE DA REWORKARE
                             if (owner.getCell ().getFoods () != null) { //EATONCELL RETURNS TRUE IF THE CRITTER ATE
@@ -127,12 +128,12 @@ public class DecisionalCore {
                                 }
                             }
                         }
-                        propension += (owner.getHunger ()) / 2 + amount / 70;
+                        propension += (owner.getHunger ()) / 2 + amount / 2;
                     }
                     if (c instanceof FreshWater) {
                         propension += owner.getThirst ();
                     }
-                    propension -= weights[i + absy][j + absx];
+                    propension -= weights[i + absy][j + absx] * 2;
                     if (propension > max) {
                         max = propension;
                         destx = j + absx;
@@ -143,37 +144,26 @@ public class DecisionalCore {
             owner.getActions ().add ("M: " + absx + " " + destx + " " + absy + " " + desty);
         }
         if (destx == absx && desty == absy) { //WANDER
-            int heartRate = 0;
-            do {
-                heartRate++;
-                if (heartRate == 20) { //100% SCIENTIFIC, NOT HERE TO PREVENT INFINITE LOOPS
-                    owner.setAlive (false);
-                    break;
-                }
-                if (wanderX == 0 && wanderY == 0) { //PUNTO SUI LIMITI DEL RANGE
-                    int direction = world.getR ().nextInt (4);
-                    if (direction >= 2) {
-                        wanderX = world.getR ().nextInt (range * 2 + 1) - range;
-                        if (direction == 2) {
-                            wanderY = 0;
-                        } else {
-                            wanderY = range;
-                        }
+            if (wanderX == 0 && wanderY == 0) { //PUNTO SUI LIMITI DEL RANGE
+                int direction = world.getR ().nextInt (4);
+                if (direction >= 2) {
+                    wanderX = world.getR ().nextInt (range * 2 + 1) - range;
+                    if (direction == 2) {
+                        wanderY = 0;
                     } else {
-                        wanderY = world.getR ().nextInt (range * 2 + 1) - range;
-                        if (direction == 0) {
-                            wanderX = 0;
-                        } else {
-                            wanderX = range;
-                        }
+                        wanderY = range;
+                    }
+                } else {
+                    wanderY = world.getR ().nextInt (range * 2 + 1) - range;
+                    if (direction == 0) {
+                        wanderX = 0;
+                    } else {
+                        wanderX = range;
                     }
                 }
-                destx = absx + wanderX;
-                desty = absy + wanderY;
-            } while (wanderX == 0 && wanderY == 0);
-        } else {
-            wanderX = 0;
-            wanderY = 0;
+            }
+            destx = absx + wanderX;
+            desty = absy + wanderY;
         }
         return pathTo (destx, desty);
     }
@@ -181,8 +171,12 @@ public class DecisionalCore {
     public ArrayDeque<int[]> pathTo(int destx, int desty) {
         int absx = owner.getAbsx ();
         int absy = owner.getAbsy ();
-        path = new ArrayDeque<> ();
 
+        if (destx >= owner.getWorld ().getFullWidth () || desty >= owner.getWorld ().getFullHeight () || destx < 0 || desty < 0) {  //DA RISCRIVERE MA NON HO SBATTI
+            System.out.println ("EH");
+            return straightPath (destx, desty);
+        }
+        path = new ArrayDeque<> ();
         if (absx == destx && absy == desty) {
             return null;
         }
@@ -211,6 +205,39 @@ public class DecisionalCore {
             desty = nexty;
         }
 
+        return path;
+    }
+
+    public ArrayDeque<int[]> straightPath(int destx, int desty) {
+        ArrayDeque<int[]> path = new ArrayDeque<> ();
+        System.out.println ("orig: " + owner.getAbsx () + " - " + owner.getAbsy ());
+        System.out.println ("dest: " + destx + " - " + desty);
+        int cx = owner.getAbsx ();
+        int cy = owner.getAbsy ();
+        while (cx != destx || cy != desty) {
+            int dx = destx - cx;
+            int dy = desty - cy;
+            if (dx > 0) {
+                cx++;
+            }
+            if (dy > 0) {
+                cy++;
+            }
+            if (dx < 0) {
+                cx--;
+            }
+            if (dy < 0) {
+                cy--;
+            }
+            path.add (new int[]{cx, cy});
+            if (cx < 0 || cy < 0 || cx > owner.getWorld ().getFullWidth () - 1 || cy > owner.getWorld ().getFullHeight () - 1) {
+                break;
+            }
+        }
+        System.out.println ("PATH");
+        for (int[] point : path) {
+            System.out.println (point[0] + " - " + point[1]);
+        }
         return path;
     }
 
