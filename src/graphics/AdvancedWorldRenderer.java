@@ -23,7 +23,7 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     private int width;
     private final int wUnit;
     private final World w;
-    private double zoom = 1;
+    private double zoom = 2;
     private final JFrame f;
     private final boolean init = false;
     private int hUnit;
@@ -33,8 +33,9 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     private int selectionEndX = 0;
     private int selectionEndY = 0;
     private Rectangle2D selection;
-    private int oldPosX = 0;
-    private int oldPosY = 0;
+    private int oldPosX;
+    private int oldPosY;
+    private boolean toInit = true;
     private int cameraPosX = 0;
     private int cameraPosY = 0;
     private int dragStartX = 0;
@@ -50,14 +51,17 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     public boolean spheed = false;
     private boolean showAll = false;
     private boolean humidityView = false;
+    private AffineTransform transform = null;
 
     public AdvancedWorldRenderer(World w, JFrame f) {
         this.w = w;
         this.f = f;
-        this.wUnit = Enviro.width * 2;
+        this.wUnit = Enviro.width;
         this.addMouseListener (this);
         this.addMouseMotionListener (this);
         this.addMouseWheelListener (this);
+        System.out.println (oldPosX + " - " + oldPosY);
+        repaint ();
         validate ();
     }
 
@@ -79,12 +83,20 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     @Override
     public void paintComponent(Graphics graphics) {
         super.paintComponent (graphics);
+        if (toInit) {
+            oldPosX = this.getWidth () / 4;
+            oldPosY = this.getHeight () / 4;
+            toInit = false;
+        }
         Graphics2D g = (Graphics2D) graphics;
-
+        System.out.println (oldPosX);
+        System.out.println (oldPosY);
         translate = AffineTransform.getTranslateInstance (translateOnScale (cameraPosX - dragStartX + oldPosX, true), translateOnScale (cameraPosY - dragStartY + oldPosY, false));
         scale = AffineTransform.getScaleInstance (zoom, zoom);
-        g.transform (scale);
-        g.transform (translate);
+        scale.concatenate (translate);
+        transform = scale;
+        g.setTransform (transform);
+
         g.setColor (Color.decode ("#0077E0"));
         g.fill (g.getClipBounds ());
 
@@ -164,7 +176,7 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
                         for (Cell[] row : grid) {
                             for (Cell cell : row) {
                                 if (cell instanceof RiverWater) {
-                                    r = new Rectangle (2 * cell.getAbsX (), 2 * cell.getAbsY (), Math.round (2), Math.round (2));
+                                    r = new Rectangle (cell.getAbsX (), cell.getAbsY (), 1, 1);
                                     g.fill (r);
                                 }
                             }
@@ -186,7 +198,10 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
                                         }
                                         g.setColor (getGreyscale (amount));
                                     }
-                                    r = new Rectangle (2 * cell.getAbsX (), 2 * cell.getAbsY (), 2, 2);
+                                    if (cell.equals (cellSelected)) {
+                                        g.setColor (Color.magenta);
+                                    }
+                                    r = new Rectangle (cell.getAbsX (), cell.getAbsY (), 1, 1);
                                     g.fill (r);
                                 }
                             }
@@ -194,7 +209,7 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
                         if (!showAll) {
                             currentEnviro.getCritters ().forEach (critter -> {
                                 if (critter.getSize () >= 0) {
-                                    Rectangle2D re = new Rectangle (2 * critter.getAbsx (), 2 * critter.getAbsy (), 2, 2);
+                                    Rectangle2D re = new Rectangle (critter.getAbsx (), critter.getAbsy (), 1, 1);
                                     g.setColor (getRedScale (critter.getSize () * 100));
                                     g.fill (re);
                                 }
@@ -204,7 +219,7 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
                     if (showAll) {
                         currentEnviro.getCritters ().forEach (critter -> {
                             if (critter.getSize () >= 0) {
-                                Rectangle2D re = new Rectangle (2 * critter.getAbsx (), 2 * critter.getAbsy (), 2, 2);
+                                Rectangle2D re = new Rectangle (critter.getAbsx (), critter.getAbsy (), 1, 1);
                                 g.setColor (getRedScale (critter.getSize () * 100));
                                 g.fill (re);
                             }
@@ -258,23 +273,28 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
         return g.getClipBounds ().contains (new Point ((int) (rect.getX () + rect.getWidth ()), (int) (rect.getY () + rect.getHeight ())));
     }
 
-    public int getAbsoluteCoordinates(int coo, boolean horizontal) {
-        if (horizontal) {
-            return (int) ((((-this.getWidth () / 2.0 + coo) / zoom) - oldPosX) + (this.getWidth () / 2.0));
-        } else {
-            return (int) ((((-this.getHeight () / 2.0 + coo) / zoom) - oldPosY) + (this.getHeight () / 2.0));
+    public Point getAbsolutePoint(Point p) {
+        try {
+            p.x = p.x - (int) (zoom / 2); //REMOVE HALF OF THE ZOOM VALUE TO FIX IMPRECISIONS IN THE REVERSED TRANSFORMATION
+            p.y = p.y - (int) (zoom / 2);
+            Point np = new Point ();
+            transform.inverseTransform (p, np);
+            System.out.println (np.toString ());
+            return np;
+        } catch (Exception e) {
+            return null;
         }
     }
 
     @Override
     public void mouseClicked(MouseEvent mouseEvent) {
         if (SwingUtilities.isRightMouseButton (mouseEvent) && mouseEvent.isControlDown ()) {
-            int x = getAbsoluteCoordinates (mouseEvent.getX (), true);
-            int y = getAbsoluteCoordinates (mouseEvent.getY (), false);
-            System.out.println ("Conversion");
-            System.out.println (mouseEvent.getX () + " - " + mouseEvent.getY ());
-            System.out.println (x + " - " + y);
-            this.cellSelected = w.getAbsCell ((int) Math.round ((x - 1) / 2.0), (int) Math.round ((y - 1) / 2.0));
+            Point p = new Point (mouseEvent.getX (), mouseEvent.getY ());
+            System.out.println (p.toString ());
+            p = getAbsolutePoint (p);
+            System.out.println (p.toString ());
+            cellSelected = w.getAbsCell (p.x, p.y);
+            System.out.println (cellSelected);
         }
         if (SwingUtilities.isRightMouseButton (mouseEvent) && mouseEvent.isShiftDown ()) {
             biomeView = !biomeView;
@@ -294,13 +314,13 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     @Override
     public void mousePressed(MouseEvent mouseEvent) {
         if (SwingUtilities.isLeftMouseButton (mouseEvent)) {
-            selectionOriginX = getAbsoluteCoordinates (mouseEvent.getX (), true);
-            selectionOriginY = getAbsoluteCoordinates (mouseEvent.getY (), false);
+            selectionOriginX = getAbsolutePoint (mouseEvent.getPoint ()).x;
+            selectionOriginY = getAbsolutePoint (mouseEvent.getPoint ()).y;
             selectionEndX = selectionOriginX;
             selectionEndY = selectionOriginY;
             count = 0;
             for (Critter current : (TreeSet<Critter>) w.getCritters ().clone ()) {
-                if (current.getAbsx () * 2 < selectionEndX && current.getAbsy () * 2 < selectionEndY && current.getAbsx () * 2 > selectionOriginX && current.getAbsy () * 2 > selectionOriginY) {
+                if (current.getAbsx () < selectionEndX && current.getAbsy () < selectionEndY && current.getAbsx () > selectionOriginX && current.getAbsy () > selectionOriginY) {
                     count++;
                 }
             }
@@ -320,8 +340,8 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     @Override
     public void mouseReleased(MouseEvent mouseEvent) {
         if (SwingUtilities.isLeftMouseButton (mouseEvent) && !mouseEvent.isControlDown ()) {
-            selectionEndX = getAbsoluteCoordinates (mouseEvent.getX (), true);
-            selectionEndY = getAbsoluteCoordinates (mouseEvent.getY (), false);
+            selectionEndX = getAbsolutePoint (mouseEvent.getPoint ()).x;
+            selectionEndY = getAbsolutePoint (mouseEvent.getPoint ()).y;
             count = 0;
             int[] traits = new int[35];
             ArrayList<Critter> critters = new ArrayList<> ();
@@ -376,8 +396,8 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     @Override
     public void mouseDragged(MouseEvent mouseEvent) {
         if (SwingUtilities.isLeftMouseButton (mouseEvent)) {
-            selectionEndX = getAbsoluteCoordinates (mouseEvent.getX (), true);
-            selectionEndY = getAbsoluteCoordinates (mouseEvent.getY (), false);
+            selectionEndX = getAbsolutePoint (mouseEvent.getPoint ()).x;
+            selectionEndY = getAbsolutePoint (mouseEvent.getPoint ()).y;
         } else {
             cameraPosX = mouseEvent.getX ();
             cameraPosY = mouseEvent.getY ();
@@ -391,7 +411,7 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
 
     @Override
     public void mouseWheelMoved(MouseWheelEvent mouseWheelEvent) {
-        zoom -= (double) mouseWheelEvent.getWheelRotation () / 5;
+        zoom -= (double) mouseWheelEvent.getWheelRotation () / 2;
         if (zoom < 1) {
             zoom = 1;
         }
