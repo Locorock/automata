@@ -9,10 +9,12 @@ public abstract class Event {
     public int size;
     protected Enviro epicenter;
     protected int duration;
+    protected int fullDuration;
     protected int seed;
     protected String name;
     protected Random r;
-    protected ArrayList<Enviro>[] affected;
+    protected ArrayList<Enviro> affected;
+    protected int strenght;
 
     public Event(Enviro epicenter, String name) {
         this.epicenter = epicenter;
@@ -23,13 +25,12 @@ public abstract class Event {
     }
 
     public void update() {
-        for (int i = 0; i < affected.length; i++) {
-            for (int j = 0; j < affected[i].size (); j++) {
-                if (duration == 0) {
-                    remove (affected.length - i, affected[i].get (j));
-                } else {
-                    apply (affected.length - i, affected[i].get (j));
-                }
+        for (int i = 0; i < affected.size (); i++) {
+            if (duration == 0) {
+                remove (strenght, affected.get (i));
+            }
+            if (duration == fullDuration) {
+                apply (strenght, affected.get (i));
             }
         }
         duration--;
@@ -49,8 +50,17 @@ public abstract class Event {
         if (duration < 1) {
             duration = 1;
         }
+        this.fullDuration = duration;
+        affected = new ArrayList<> ();
 
-        this.affected = epicenter.scanNeighbours (size);
+        ((ArrayList<ArrayList<Enviro>>) epicenter.getWorld ().getMap ().clone ()).forEach (current -> {
+            ((ArrayList<Enviro>) current.clone ()).forEach (currentEnviro -> {
+                if (Math.abs (currentEnviro.getX () - epicenter.getX ()) < size && Math.abs (currentEnviro.getY () - epicenter.getY ()) < size) {
+                    affected.add (currentEnviro);
+                    strenght = size;
+                }
+            });
+        });
     }
 
     public int getSeed() {
@@ -69,11 +79,11 @@ public abstract class Event {
         this.name = name;
     }
 
-    public ArrayList<Enviro>[] getAffected() {
+    public ArrayList<Enviro> getAffected() {
         return affected;
     }
 
-    public void setAffected(ArrayList<Enviro>[] affected) {
+    public void setAffected(ArrayList<Enviro> affected) {
         this.affected = affected;
     }
 

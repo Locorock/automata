@@ -4,21 +4,18 @@ import base.Cell;
 import base.Critter;
 import base.Enviro;
 import base.World;
-import baseCells.FreshWater;
-import cells.RiverWater;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
 
-public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, WindowListener {
+public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener, MouseListener, MouseWheelListener {
     private Enviro enviro;
     private int width;
     private final int wUnit;
@@ -27,7 +24,6 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     private final JFrame f;
     private final boolean init = false;
     private int hUnit;
-    private final ArrayList<CritterRender> openRenders;
     private int selectionOriginX = 0;
     private int selectionOriginY = 0;
     private int selectionEndX = 0;
@@ -40,7 +36,6 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     private int cameraPosY = 0;
     private int dragStartX = 0;
     private int dragStartY = 0;
-    private final ArrayList<Critter> following;
     public int totalAmount = 0;
     public double lastCycleTime = 0;
     private int count = 0;
@@ -48,6 +43,7 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     private CountDownLatch latch;
     private AffineTransform translate;
     private AffineTransform scale;
+    public ArrayList<Critter> following;
     public boolean spheed = false;
     private boolean showAll = false;
     private boolean humidityView = false;
@@ -62,9 +58,7 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
         this.addMouseListener (this);
         this.addMouseMotionListener (this);
         this.addMouseWheelListener (this);
-        f.addKeyListener (this);
         System.out.println (oldPosX + " - " + oldPosY);
-        openRenders = new ArrayList<CritterRender> ();
         following = new ArrayList<Critter> ();
         repaint ();
         validate ();
@@ -80,17 +74,25 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
         return Color.getHSBColor (color[0], color[1], (float) (color[2] - num / 30.0));
     }
 
-    public void update(CountDownLatch latch) {
-        this.latch = latch;
-        following.clear ();
-        System.out.println ("follow");
-        for (int i = 0; i < openRenders.size (); i++) {
-            CritterRender cr = openRenders.get (i);
-            cr.refresh (following);
-            System.out.println ("FRESHO");
+    public static boolean isOnScreen(Rectangle2D rect, Graphics2D g) {
+        if (g.getClipBounds ().contains (new Point ((int) rect.getX (), (int) rect.getY ()))) {
+            return true;
         }
-        System.out.println ("repaint");
-        this.repaint ();
+        if (g.getClipBounds ().contains (new Point ((int) (rect.getX () + rect.getWidth ()), (int) rect.getY ()))) {
+            return true;
+        }
+        if (g.getClipBounds ().contains (new Point ((int) rect.getX (), (int) (rect.getY () + rect.getHeight ())))) {
+            return true;
+        }
+        return g.getClipBounds ().contains (new Point ((int) (rect.getX () + rect.getWidth ()), (int) (rect.getY () + rect.getHeight ())));
+    }
+
+    public int translateOnScale(int coordinate, boolean horizontal) {
+        if (horizontal) {
+            return (int) ((coordinate - (this.getWidth () - (this.getWidth () / zoom)) / 2));
+        } else {
+            return (int) ((coordinate - (this.getHeight () - (this.getHeight () / zoom)) / 2));
+        }
     }
 
     @Override
@@ -111,6 +113,28 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
         transform = scale;
         g.setTransform (transform);
 
+        if (zoom > renderThreshold) {
+            MacroOverlays.call (g, w, "microView");
+        } else {
+            if (biomeView) {
+                MacroOverlays.call (g, w, "biomeView");
+            } else {
+                if (humidityView) {
+                    MacroOverlays.call (g, w, "humView");
+                } else {
+                    MacroOverlays.call (g, w, "popView");
+                }
+            }
+            if (showAll) {
+                System.out.println ("all");
+                MacroOverlays.call (g, w, "allView");
+            }
+        }
+
+
+
+
+        /*
         if (biomeView) {
             g.setColor (Color.decode ("#0077E0"));
         } else {
@@ -257,16 +281,18 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
                             }
                         });
                     }
-                    /* WAY TOO EXPENSIVE
+                    WAY TOO EXPENSIVE
                     if(!biomeView) {
                         Color alpha = new Color (255, 0, 0, 32 * currentEnviro.getCritters ().size () % 255);
                         g.setColor (alpha);
                         g.fill (r);
                     }
-                     */
+
                 }
             });
         });
+
+         */
 
         g.setColor (Color.red);
         g.drawRect (selectionOriginX, selectionOriginY, selectionEndX - selectionOriginX, selectionEndY - selectionOriginY);
@@ -289,27 +315,6 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
             this.latch.countDown ();
         }
 
-    }
-
-    public int translateOnScale(int coordinate, boolean horizontal) {
-        if (horizontal) {
-            return (int) ((coordinate - (this.getWidth () - (this.getWidth () / zoom)) / 2));
-        } else {
-            return (int) ((coordinate - (this.getHeight () - (this.getHeight () / zoom)) / 2));
-        }
-    }
-
-    public boolean isOnScreen(Rectangle2D rect, Graphics2D g) {
-        if (g.getClipBounds ().contains (new Point ((int) rect.getX (), (int) rect.getY ()))) {
-            return true;
-        }
-        if (g.getClipBounds ().contains (new Point ((int) (rect.getX () + rect.getWidth ()), (int) rect.getY ()))) {
-            return true;
-        }
-        if (g.getClipBounds ().contains (new Point ((int) rect.getX (), (int) (rect.getY () + rect.getHeight ())))) {
-            return true;
-        }
-        return g.getClipBounds ().contains (new Point ((int) (rect.getX () + rect.getWidth ()), (int) (rect.getY () + rect.getHeight ())));
     }
 
     public Point getAbsolutePoint(Point p) {
@@ -366,9 +371,6 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
             System.out.println (count);
             repaint ();
         } else {
-            if (SwingUtilities.isMiddleMouseButton (mouseEvent)) {
-                w.getT ().running = !w.getT ().running;
-            }
             dragStartX = mouseEvent.getX ();
             dragStartY = mouseEvent.getY ();
             cameraPosX = dragStartX;
@@ -399,9 +401,9 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
             JPanel jp = new JPanel ();
             jp.setLayout (new GridLayout (20, 2));
             jp.add (new JLabel (critters.get (0).name));
-            ArrayDeque actions = critters.get (0).getActions ().clone ();
-            while (!actions.isEmpty ()) {
-                JLabel desc = new JLabel ((String) actions.removeFirst ());
+            ArrayList<String> actions = critters.get (0).getActions ();
+            for (int i = 0; i < actions.size (); i++) {
+                JLabel desc = new JLabel (actions.get (i));
                 jp.add (desc);
                 System.out.println (desc.getText ());
             }
@@ -444,44 +446,41 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
         repaint ();
     }
 
-    @Override
-    public void keyPressed(KeyEvent keyEvent) {
-        int key = keyEvent.getKeyCode ();
-        System.out.println (key);
-        if (key == KeyEvent.VK_C) {
-            if (cellSelected != null) {
-                ArrayList<Critter> found = new ArrayList<Critter> ();
-                for (Critter c : cellSelected.enviro.getCritters ()) {
-                    if (c.getAbsx () == cellSelected.getAbsX () && c.getAbsy () == cellSelected.getAbsY ()) {
-                        found.add (c);
-                    }
-                }
-                if (!found.isEmpty ()) {
-                    JFrame f = new JFrame ();
-                    f.addWindowListener (this);
-                    f.setSize (300, 400);
-                    CritterRender cr = new CritterRender (found);
-                    f.setContentPane (cr);
-                    openRenders.add (cr);
-                    f.setVisible (true);
-                }
-
-            }
-        }
-        if (key == KeyEvent.VK_F) {
-            w.getT ().loop = true;
-        }
+    public Cell getCellSelected() {
+        return cellSelected;
     }
 
-    @Override
-    public void windowClosing(WindowEvent windowEvent) {
-        System.out.println ("CLOSED");
-        if (windowEvent.getSource () != this) {
-            CritterRender cr = (CritterRender) ((JFrame) windowEvent.getSource ()).getContentPane ();
-            openRenders.remove (cr);
-        }
+    public void setCellSelected(Cell cellSelected) {
+        this.cellSelected = cellSelected;
     }
 
+
+    public double getZoom() {
+        return zoom;
+    }
+
+    public double getRenderTreshold() {
+        return renderThreshold;
+    }
+
+    public void setPopView() {
+        biomeView = false;
+        humidityView = false;
+    }
+
+    public void setHumView() {
+        biomeView = false;
+        humidityView = true;
+    }
+
+    public void setBiomeView() {
+        biomeView = true;
+        humidityView = false;
+    }
+
+    public void switchAllView() {
+        showAll = !showAll;
+    }
 
     //UNUSED LISTENERS
     @Override
@@ -494,37 +493,5 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
 
     @Override
     public void mouseMoved(MouseEvent mouseEvent) {
-    }
-
-    @Override
-    public void keyTyped(KeyEvent keyEvent) {
-    }
-
-    @Override
-    public void windowOpened(WindowEvent windowEvent) {
-    }
-
-    @Override
-    public void windowClosed(WindowEvent windowEvent) {
-    }
-
-    @Override
-    public void windowIconified(WindowEvent windowEvent) {
-    }
-
-    @Override
-    public void windowDeiconified(WindowEvent windowEvent) {
-    }
-
-    @Override
-    public void windowActivated(WindowEvent windowEvent) {
-    }
-
-    @Override
-    public void windowDeactivated(WindowEvent windowEvent) {
-    }
-
-    @Override
-    public void keyReleased(KeyEvent keyEvent) {
     }
 }

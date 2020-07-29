@@ -19,7 +19,7 @@ public class Puddle extends LowWater {
     public void tick() {
         super.tick ();
         Random r = enviro.getR ();
-        if ((r.nextInt () * (int) enviro.getTemperature ()) % 1000 == 0 || CellList.valueOf (previous.getType ()).isPermeable () && r.nextInt () % 4 == 0) {
+        if ((r.nextInt () * (int) enviro.getTemperature ()) % 500 == 0 || CellList.valueOf (previous.getType ()).isPermeable () && r.nextInt () % 4 == 0) {
             enviro.replaceWith (this, previous);
         }
     }

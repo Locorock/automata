@@ -1,6 +1,7 @@
 package base;
 
 import enumLists.EventList;
+import graphics.MainGUI;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ public class Time extends Thread {
     private final int tot = 0;
     private int seed;
     private final World w;
+    private final MainGUI gui;
     public boolean running = false;
     public boolean loop = false;
 
@@ -25,6 +27,7 @@ public class Time extends Thread {
         this.tickSize = tickSize;
         this.cycleSize = cycleSize;
         this.w = w;
+        this.gui = w.gui;
         this.events = new ArrayList<Event> ();
         this.r = w.getR ();
     }
@@ -54,10 +57,10 @@ public class Time extends Thread {
             double elapsed = 0;
             long start = System.nanoTime ();
             System.out.println ("panel");
-            if (!w.panel.spheed) {
+            if (!gui.panel.spheed) {
                 CountDownLatch latch = new CountDownLatch (1);
                 System.out.println ("latch " + latch);
-                w.panel.update (latch);
+                gui.update (latch);
                 latch.await ();
                 System.out.println ("over");
             }
@@ -69,8 +72,8 @@ public class Time extends Thread {
                 ticks = 0;
             }
             elapsed = (double) (System.nanoTime () - start) / 1000000;
-            w.panel.lastCycleTime = elapsed;
-            w.panel.totalAmount = w.getCritters ().size ();
+            gui.panel.lastCycleTime = elapsed;
+            gui.panel.totalAmount = w.getCritters ().size ();
             System.out.println (elapsed + " - " + w.getCritters ().size ());
             if (elapsed < tickSize && tickSize != 0)
                 sleep ((long) tickSize - (long) elapsed);
@@ -123,7 +126,9 @@ public class Time extends Thread {
                     }
                     if (randomN == 0) {
                         try {
+                            System.out.println (event.name ());
                             Event e = (Event) Class.forName ("events." + event.name ()).getDeclaredConstructor (new Class[]{Enviro.class, String.class}).newInstance (enviro, event.name ());
+                            System.out.println (e.getDuration () + " " + e.getEpicenter () + " " + e.getAffected ().toString ());
                             events.add (e);
                         } catch (InstantiationException ex) {
                             ex.printStackTrace ();

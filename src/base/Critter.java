@@ -4,6 +4,7 @@ import baseCells.FreshWater;
 import enumLists.CellList;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.BitSet;
 
 public class Critter implements Comparable<Critter> {
@@ -46,7 +47,7 @@ public class Critter implements Comparable<Critter> {
     private World world;
     private int lastWaterX;
     private int lastWaterY;
-    private ArrayDeque actions = new ArrayDeque ();
+    private ArrayList<String> actions = new ArrayList<String> ();
 
 
     public Critter(String name, World w, int absx, int absy) {
@@ -93,7 +94,7 @@ public class Critter implements Comparable<Critter> {
         this.aggressiveness = shiftToRange (0, 10, code.getCardinality ("Aggressiveness"), 256);
         this.size = code.getCardinality ("Size");
         this.dietType = code.getCardinality ("DietType");
-        this.timeToLive = (int) ((300 + (world.getR ().nextInt (50)) - (mateRate * 80)));
+        this.timeToLive = (int) ((300 + (world.getR ().nextInt (50)) - (mateRate * 80)) + size * 50);
         this.mateCooldown = (int) (45 * mateRate * 2);
     }
 
@@ -126,7 +127,7 @@ public class Critter implements Comparable<Critter> {
         action += decisionalCore.act ();
         actions.add (action);
         if (actions.size () > 40) {
-            actions.removeFirst ();
+            actions.remove (0);
         }
     }
 
@@ -211,6 +212,7 @@ public class Critter implements Comparable<Critter> {
 
     public boolean moveTo(int absx, int absy) {
         boolean linear = true;
+        System.out.println ("STEPPING FROM: " + this.absx + " - " + this.absy + " TO " + absx + " - " + absy);
         if (this.absx == world.getFullWidth () - 1 && absx == world.getFullWidth ()) {
             absx = 0;
             linear = false;
@@ -226,6 +228,9 @@ public class Critter implements Comparable<Critter> {
         if (this.absy == 0 && absy < 0) {
             absy = world.getFullHeight () - 1;
             linear = false;
+        }
+        if (!linear) {
+            System.out.println ("WARPING FROM: " + this.absx + " - " + this.absy + " TO " + absx + " - " + absy);
         }
 
         Cell c = world.getAbsCell (absx, absy);
@@ -435,11 +440,11 @@ public class Critter implements Comparable<Critter> {
         this.timeToLive = timeToLive;
     }
 
-    public ArrayDeque getActions() {
+    public ArrayList<String> getActions() {
         return actions;
     }
 
-    public void setActions(ArrayDeque actions) {
+    public void setActions(ArrayList<String> actions) {
         this.actions = actions;
     }
 

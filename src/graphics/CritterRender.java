@@ -13,14 +13,22 @@ import java.util.Vector;
 public class CritterRender extends JPanel implements ItemListener, WindowStateListener {
     private final JLabel info;
     private final JComboBox selection;
+    private final JLabel actions;
+    private final JScrollPane scroll;
 
     public CritterRender(ArrayList<Critter> critters) {
+        BoxLayout layout = new BoxLayout (this, BoxLayout.Y_AXIS);
+        this.setLayout (layout);
         selection = new JComboBox (new Vector (critters));
         selection.addItemListener (this);
         this.add (selection);
         info = new JLabel ();
         this.add (info);
+        actions = new JLabel ();
+        scroll = new JScrollPane (actions);
+        this.add (scroll);
         showInfo (critters.get (0));
+        System.out.println (this.actions.getText ());
     }
 
     @Override
@@ -36,10 +44,17 @@ public class CritterRender extends JPanel implements ItemListener, WindowStateLi
         info += "Size: " + c.getSize () + "<br>";
         info += "DietType: " + c.getDietType () + "<br>";
         info += "BaseSpeed: " + c.getBaseSpeed () + "<br>";
-        info += "Size: " + null + "<br>";
-        info += "Last Action: " + c.getActions ().getFirst () + "<br>";
+        info += "Position: " + c.getAbsx () + " - " + c.getAbsy () + "<br>";
+        info += "Last Action: " + c.getActions ().get (0) + "<br>";
+        info += "Path: " + c.getPath () + "<br>";
         info += "</html>";
         this.info.setText (info);
+        actions.setText ("<html>");
+        for (int i = 0; i < c.getActions ().size (); i++) {
+            System.out.println (c.getActions ().get (i));
+            actions.setText (actions.getText () + c.getActions ().get (i) + "<br>");
+        }
+        actions.setText (actions.getText () + "</html>");
     }
 
     public void refresh(ArrayList<Critter> following) {

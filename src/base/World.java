@@ -2,10 +2,8 @@ package base;
 
 import cells.RiverWater;
 import enumLists.EnviroList;
-import graphics.AdvancedWorldRenderer;
+import graphics.MainGUI;
 
-import javax.swing.*;
-import java.awt.*;
 import java.util.*;
 
 import static base.SimplexNoise.generateOctavedSimplexNoise;
@@ -13,20 +11,20 @@ import static base.SimplexNoise.generateOctavedSimplexNoise;
 public class World {
     public static final int tickSpeed = 0;
     public static final int critterAmount = 0;
-    private static final int size = 64;
+    private static final int size = 48;
 
     private ArrayList<ArrayList<Enviro>> map;
     private Random r;
     private ArrayList<Enviro> enviros = new ArrayList<> ();
     private BitSet[] cellId;
     private final int enviroWidth = Enviro.width;
-    public AdvancedWorldRenderer panel;
     private int fullWidth;
     private int fullHeight;
     private Time t;
     private TreeSet<Critter> critters = new TreeSet<Critter> (Critter::compareTo);
     public ArrayDeque<Cell> cells = new ArrayDeque<> ();
     public ArrayDeque<Cell> updates = new ArrayDeque<> ();
+    public MainGUI gui;
 
     public World() {
         int seed = new Random ().nextInt (10000);
@@ -41,13 +39,7 @@ public class World {
             Critter c2 = new Critter ("Katrina", this, 15 * 16 + 5, 15 * 16 + 5);
             critters.add (c2);
         }
-        JFrame jf = new JFrame ();
-        jf.setSize (new Dimension (getFullWidth () * 2, getFullHeight () * 2));
-        jf.setVisible (true);
-        AdvancedWorldRenderer jp = new AdvancedWorldRenderer (this, jf);
-        jf.add (jp);
-        jp.repaint ();
-        this.panel = jp;
+        gui = new MainGUI (this);
         System.out.println ("Finished");
         t = new Time (tickSpeed, 20, this);
         t.start ();
@@ -114,7 +106,7 @@ public class World {
             for (int j = 0; j < map.length; j++) {
                 grad[i][j] = max2 - grad[i][j];
                 grad[i][j] /= max2;
-                result[i][j] = (float) ((grad[i][j] / 1.5) * map[i][j]);   //ATTENZIONE, ALTA MATEMATICA, CAMBIA IL NUMERO PER L'OFFSET E SBATTITENE
+                result[i][j] = (float) ((grad[i][j] / 2) * map[i][j]) + 0.10f;   //ATTENZIONE, ALTA MATEMATICA, CAMBIA IL NUMERO PER L'OFFSET E SBATTITENE
             }
         }
         for (int i = 0; i < grad.length; i++) {
@@ -141,7 +133,7 @@ public class World {
         }
         for (int i = 0; i < map.length; i++) {
             for (int j = 0; j < map.length; j++) {
-                result[i][j] = (float) ((grad[i][j]) * map[i][j]);   //ATTENZIONE, ALTA MATEMATICA, CAMBIA IL NUMERO PER L'OFFSET E SBATTITENE
+                result[i][j] = (float) (((grad[i][j]) * map[i][j]) + 0.20);   //ATTENZIONE, ALTA MATEMATICA, CAMBIA IL NUMERO PER L'OFFSET E SBATTITENE
             }
         }
         for (int i = 0; i < grad.length; i++) {
@@ -155,7 +147,7 @@ public class World {
     }
 
     private void generateWorldSimplex(int size, int skew, int magnitude) {
-        float[][] heightMap = circularFilterNew (generateOctavedSimplexNoise (size, size, 4, 0.05f, 0.09f, r));
+        float[][] heightMap = circularFilterNew (generateOctavedSimplexNoise (size, size, 6, 0.05f, 0.09f, r));
         float[][] heatMap = generateOctavedSimplexNoise (size, size, 3, 0.1f, 0.01f, r);
         float[][] humidityMap = generateOctavedSimplexNoise (size, size, 3, 0.1f, 0.01f, r);
         map = new ArrayList<ArrayList<Enviro>> ();

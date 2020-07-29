@@ -35,7 +35,7 @@ public class DecisionalCore {
     }
 
     public String act() {
-        String action = "";
+        action = "";
         switch (behaviour) {
             case "seek":
                 seek ();
@@ -72,6 +72,7 @@ public class DecisionalCore {
                             while (owner.getMovementProgress () > 1 && !path.isEmpty ()) {
                                 owner.setMovementProgress (owner.getMovementProgress () - (1 / owner.getSpeed ()));
                                 int[] next = path.removeFirst ();
+                                action += " | " + next[0] + " - " + next[1];
                                 if (owner.moveTo (next[0], next[1])) {
                                     ((Solid) owner.getWorld ().getAbsCell (next[0], next[1])).onPassage (owner);
                                 }
@@ -111,11 +112,15 @@ public class DecisionalCore {
         int dietType = owner.getDietType ();
 
         int destx = absx, desty = absy;
-        double max = Double.MIN_VALUE;
+        double max = 20; //MINIMUM WEIGHT
+        double maxw = 0;
+        double maxt = 0;
+        double maxh = 0;
         for (int i = -range; i <= range; i++) {
             for (int j = -range; j <= range; j++) {
                 Cell c = world.getAbsCell (j + absx, i + absy);
                 if (c != null) {
+                    double hunger = 0, thirst = 0, weight = 0;
                     double propension = this.propensionMap.get (c.getType ());
                     if (c.getFoods () != null) {
                         int amount = 0;
@@ -128,21 +133,27 @@ public class DecisionalCore {
                                 }
                             }
                         }
-                        propension += (owner.getHunger ()) / 2 + amount / 2;
+                        propension += (owner.getHunger () / 2) * (amount / 2);
+                        hunger = (owner.getHunger () / 2) * (amount / 2);
                     }
                     if (c instanceof FreshWater) {
                         propension += owner.getThirst ();
+                        thirst = owner.getThirst ();
                     }
                     propension -= weights[i + absy][j + absx] * 2;
+                    weight = weights[i + absy][j + absx] * 2;
                     if (propension > max) {
                         max = propension;
+                        maxw = weight;
+                        maxh = hunger;
+                        maxt = thirst;
                         destx = j + absx;
                         desty = i + absy;
                     }
                 }
             }
-            owner.getActions ().add ("M: " + absx + " " + destx + " " + absy + " " + desty);
         }
+        action += " | MAX " + max + " | WEIGHT " + maxw + " | FOOD " + maxh + " | THIRST " + maxt + " | ";
         if (destx == absx && desty == absy) { //WANDER
             if (wanderX == 0 && wanderY == 0) { //PUNTO SUI LIMITI DEL RANGE
                 int direction = world.getR ().nextInt (4);
@@ -164,6 +175,7 @@ public class DecisionalCore {
             }
             destx = absx + wanderX;
             desty = absy + wanderY;
+            action += "WANDER TO " + destx + "-" + desty;
         }
         return pathTo (destx, desty);
     }
@@ -172,10 +184,12 @@ public class DecisionalCore {
         int absx = owner.getAbsx ();
         int absy = owner.getAbsy ();
 
-        if (destx >= owner.getWorld ().getFullWidth () || desty >= owner.getWorld ().getFullHeight () || destx < 0 || desty < 0) {  //DA RISCRIVERE MA NON HO SBATTI
-            System.out.println ("EH");
-            return straightPath (destx, desty);
-        }
+        //if (destx >= owner.getWorld ().getFullWidth () || desty >= owner.getWorld ().getFullHeight () || destx < 0 || desty < 0) {}  //DA RISCRIVERE MA NON HO SBATTI
+        action += " | sPATH ";
+        return straightPath (destx, desty);
+
+        /*
+        action += " | nPATH ";    UN GIORNO LO RIMETTO MA NON HO SBATTI VERAMENTE CIOÈ CHE COGLIONI STO WRAPPERONE
         path = new ArrayDeque<> ();
         if (absx == destx && absy == desty) {
             return null;
@@ -204,8 +218,11 @@ public class DecisionalCore {
             destx = nextx;
             desty = nexty;
         }
-
+        for (int[] point : path) {
+            action += " | "+point[0]+" - "+point[1];
+        }
         return path;
+         */
     }
 
     public ArrayDeque<int[]> straightPath(int destx, int desty) {
@@ -235,8 +252,10 @@ public class DecisionalCore {
             }
         }
         System.out.println ("PATH");
+
         for (int[] point : path) {
             System.out.println (point[0] + " - " + point[1]);
+            action += " | " + point[0] + " - " + point[1];
         }
         return path;
     }
