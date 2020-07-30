@@ -16,7 +16,7 @@ public class GenCode {
             }
         }
         for (int i = 0; i < code.size (); i++) {
-            if (r.nextInt (100) == 0) {
+            if (r.nextInt (500) == 0) {
                 code.flip (i);
             }
         }

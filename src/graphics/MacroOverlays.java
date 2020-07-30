@@ -31,6 +31,10 @@ public class MacroOverlays {
                 break;
             case "microView":
                 microView ((Graphics2D) g, w, panel);
+                break;
+            case "heightView":
+                heightView ((Graphics2D) g, w, panel);
+                break;
         }
     }
 
@@ -235,6 +239,21 @@ public class MacroOverlays {
             });
         });
     }
+
+    public static void heightView(Graphics2D g, World w, AdvancedWorldRenderer panel) {
+        ((ArrayList<ArrayList<Enviro>>) w.getMap ().clone ()).forEach (current -> {
+            ((ArrayList<Enviro>) current.clone ()).forEach (currentEnviro -> {
+                Color c = getGreyscale (currentEnviro.getAltitude () * 10);
+                g.setColor (c);
+                Rectangle2D r = new Rectangle (wUnit * currentEnviro.getX (), wUnit * currentEnviro.getY (), Math.round (wUnit), Math.round (wUnit));
+                if (isOnScreen (r, g)) {
+                    g.fill (r);
+                    g.setColor (Color.decode ("#0077E0"));
+                }
+            });
+        });
+    }
+
 
     public static Color getRedScale(double num, Color c) {
         float[] color = Color.RGBtoHSB ((int) (c.getRed () + num * 10), c.getGreen (), c.getBlue (), null);

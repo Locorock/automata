@@ -106,7 +106,7 @@ public class World {
             for (int j = 0; j < map.length; j++) {
                 grad[i][j] = max2 - grad[i][j];
                 grad[i][j] /= max2;
-                result[i][j] = (float) ((grad[i][j] / 2) * map[i][j]) + 0.10f;   //ATTENZIONE, ALTA MATEMATICA, CAMBIA IL NUMERO PER L'OFFSET E SBATTITENE
+                result[i][j] = (float) ((grad[i][j]) * map[i][j]) + 0.05f;   //ATTENZIONE, ALTA MATEMATICA, CAMBIA IL NUMERO PER L'OFFSET E SBATTITENE
             }
         }
         for (int i = 0; i < grad.length; i++) {
@@ -133,7 +133,7 @@ public class World {
         }
         for (int i = 0; i < map.length; i++) {
             for (int j = 0; j < map.length; j++) {
-                result[i][j] = (float) (((grad[i][j]) * map[i][j]) + 0.20);   //ATTENZIONE, ALTA MATEMATICA, CAMBIA IL NUMERO PER L'OFFSET E SBATTITENE
+                result[i][j] = (float) (((grad[i][j] / 2) * map[i][j]) + 0.1);   //ATTENZIONE, ALTA MATEMATICA, CAMBIA IL NUMERO PER L'OFFSET E SBATTITENE
             }
         }
         for (int i = 0; i < grad.length; i++) {
@@ -147,7 +147,7 @@ public class World {
     }
 
     private void generateWorldSimplex(int size, int skew, int magnitude) {
-        float[][] heightMap = circularFilterNew (generateOctavedSimplexNoise (size, size, 6, 0.05f, 0.09f, r));
+        float[][] heightMap = circularFilter (generateOctavedSimplexNoise (size, size, 3, 0.05f, 0.09f, r));
         float[][] heatMap = generateOctavedSimplexNoise (size, size, 3, 0.1f, 0.01f, r);
         float[][] humidityMap = generateOctavedSimplexNoise (size, size, 3, 0.1f, 0.01f, r);
         map = new ArrayList<ArrayList<Enviro>> ();
@@ -157,7 +157,7 @@ public class World {
                 double dist = (Math.abs (j - size / 2) + Math.abs (i - size / 2));
                 double height = heightMap[i][j];
                 double temp = Math.abs (heatMap[i][j]) * 100;
-                double hum = Math.abs (humidityMap[i][j]) * 100 + 20;
+                double hum = Math.abs (humidityMap[i][j]) * 100 + 10;
 
                 Enviro e = new Enviro (temp, height, hum, null, this, r, j, i);
                 map.get (i).add (e);

@@ -20,6 +20,7 @@ public class Time extends Thread {
     private int seed;
     private final World w;
     private final MainGUI gui;
+    public double lastPop = 0;
     public boolean running = false;
     public boolean loop = false;
 
@@ -53,18 +54,14 @@ public class Time extends Thread {
 
     public void loop() {
         try {
-            System.out.println ("LOOP");
             double elapsed = 0;
             long start = System.nanoTime ();
-            System.out.println ("panel");
             if (!gui.panel.spheed) {
                 CountDownLatch latch = new CountDownLatch (1);
-                System.out.println ("latch " + latch);
                 gui.update (latch);
                 latch.await ();
-                System.out.println ("over");
             }
-            System.out.println ("tick");
+            lastPop = w.getCritters ().size ();
             tick ();
             ticks++;
             if (ticks >= cycleSize) {
@@ -74,10 +71,8 @@ public class Time extends Thread {
             elapsed = (double) (System.nanoTime () - start) / 1000000;
             gui.panel.lastCycleTime = elapsed;
             gui.panel.totalAmount = w.getCritters ().size ();
-            System.out.println (elapsed + " - " + w.getCritters ().size ());
             if (elapsed < tickSize && tickSize != 0)
                 sleep ((long) tickSize - (long) elapsed);
-            System.out.println ("LOOPEND");
         } catch (InterruptedException e) {
             e.printStackTrace ();
         }
@@ -89,17 +84,17 @@ public class Time extends Thread {
                 c.tick ();
             } else {
                 Foods foods = c.getCell ().getFoods ();
-                double amount = (c.getAge () + c.getSize () * 50) / 200;     //CORPSE FOOD VALUE
+                double amount = c.getBiomass () / 2;  //CORPSE FOOD VALUE
                 if (foods != null) {
                     if (foods.getFoodTypes ().contains (6)) {
                         int index = foods.getFoodTypes ().indexOf (6);
                         foods.addFoodToExisting (index, amount);
                     } else {
-                        foods.addFood (-0.05, 6, amount, Double.MAX_VALUE);
+                        foods.addFood (-0.15, 8, amount, Double.MAX_VALUE);
                     }
                 } else {
                     foods = new Foods (c.getEnviro ());
-                    foods.addFood (-0.05, 6, amount, Double.MAX_VALUE);
+                    foods.addFood (-0.15, 8, amount, Double.MAX_VALUE);
                     c.getCell ().setFoods (foods);
                 }
                 w.getCritters ().remove (c);
@@ -126,9 +121,7 @@ public class Time extends Thread {
                     }
                     if (randomN == 0) {
                         try {
-                            System.out.println (event.name ());
                             Event e = (Event) Class.forName ("events." + event.name ()).getDeclaredConstructor (new Class[]{Enviro.class, String.class}).newInstance (enviro, event.name ());
-                            System.out.println (e.getDuration () + " " + e.getEpicenter () + " " + e.getAffected ().toString ());
                             events.add (e);
                         } catch (InstantiationException ex) {
                             ex.printStackTrace ();

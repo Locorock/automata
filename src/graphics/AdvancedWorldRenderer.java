@@ -47,6 +47,7 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     public boolean spheed = false;
     private boolean showAll = false;
     private boolean humidityView = false;
+    private boolean heightView = false;
     private AffineTransform transform = null;
     private boolean biomeView = true;
     private double renderThreshold = 15;
@@ -98,15 +99,12 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     @Override
     public void paintComponent(Graphics graphics) {
         super.paintComponent (graphics);
-        System.out.println ("super");
         if (toInit) {
             oldPosX = this.getWidth () / 4;
             oldPosY = this.getHeight () / 4;
             toInit = false;
         }
         Graphics2D g = (Graphics2D) graphics;
-        System.out.println (oldPosX);
-        System.out.println (oldPosY);
         translate = AffineTransform.getTranslateInstance (translateOnScale (cameraPosX - dragStartX + oldPosX, true), translateOnScale (cameraPosY - dragStartY + oldPosY, false));
         scale = AffineTransform.getScaleInstance (zoom, zoom);
         scale.concatenate (translate);
@@ -122,177 +120,17 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
                 if (humidityView) {
                     MacroOverlays.call (g, w, "humView");
                 } else {
-                    MacroOverlays.call (g, w, "popView");
+                    if (heightView) {
+                        MacroOverlays.call (g, w, "heightView");
+                    } else {
+                        MacroOverlays.call (g, w, "popView");
+                    }
                 }
             }
             if (showAll) {
-                System.out.println ("all");
                 MacroOverlays.call (g, w, "allView");
             }
         }
-
-
-
-
-        /*
-        if (biomeView) {
-            g.setColor (Color.decode ("#0077E0"));
-        } else {
-            g.setColor (Color.black);
-        }
-
-        g.fill (g.getClipBounds ());
-
-        ((ArrayList<ArrayList<Enviro>>) w.getMap ().clone ()).forEach (current -> {
-            ((ArrayList<Enviro>) current.clone ()).forEach (currentEnviro -> {
-                Color c = null;
-                if (biomeView) {
-                    switch (currentEnviro.getBiome ()) {
-                        case "Ocean": {
-                            c = Color.decode ("#0077E0");
-                            break;
-                        }
-                        case "Forest": {
-                            c = Color.decode ("#0CFF00");
-                            break;
-                        }
-                        case "Plains": {
-                            c = Color.decode ("#4AB004");
-                            break;
-                        }
-                        case "Taiga": {
-                            c = Color.decode ("#0E4B00");
-                            break;
-                        }
-                        case "Tundra": {
-                            c = Color.decode ("#974A1C");
-                            break;
-                        }
-                        case "Jungle": {
-                            c = Color.green;
-                            break;
-                        }
-                        case "Savanna": {
-                            c = Color.yellow;
-                            break;
-                        }
-                        case "Arctic": {
-                            c = Color.decode ("#7DCB8C");
-                            break;
-                        }
-                        case "PrimSoup": {
-                            c = Color.decode ("#A44A4A");
-                            break;
-                        }
-                        case "Desert": {
-                            c = Color.decode ("#5087FF");
-                            break;
-                        }
-                        case "Wetland": {
-                            c = Color.decode ("#42B260");
-                            break;
-                        }
-                        case "Steppe": {
-                            c = Color.decode ("#A7D87A");
-                            break;
-                        }
-                        default: {
-                            c = Color.lightGray;
-                        }
-                    }
-                } else {
-                    if (humidityView) {
-                        c = getGreyscale (currentEnviro.getHumidity () * 2.5);
-                    } else {
-                        if (currentEnviro.getBiome () == "Ocean") {
-                            c = Color.darkGray;
-                        } else {
-                            c = Color.gray;
-                        }
-                        if (currentEnviro.getCritters ().size () > 1) {
-                            c = getRedScale (currentEnviro.getCritters ().size (), c);
-                        }
-                    }
-                }
-
-                g.setColor (c);
-
-                Rectangle2D r = new Rectangle (wUnit * currentEnviro.getX (), wUnit * currentEnviro.getY (), Math.round (wUnit), Math.round (wUnit));
-                if (isOnScreen (r, g)) {
-                    g.fill (r);
-                    g.setColor (Color.decode ("#0077E0"));
-                    if (currentEnviro.isRiver () && zoom <= renderThreshold) {
-                        Cell[][] grid = currentEnviro.getGrid ();
-                        for (Cell[] row : grid) {
-                            for (Cell cell : row) {
-                                if (cell instanceof RiverWater) {
-                                    r = new Rectangle (cell.getAbsX (), cell.getAbsY (), 1, 1);
-                                    g.fill (r);
-                                }
-                            }
-                        }
-                    }
-                    if (zoom > renderThreshold) {
-                        if (currentEnviro.getBiome () != "Ocean#") { // TEST #
-                            Cell[][] grid = currentEnviro.getGrid ();
-                            for (Cell[] row : grid) {
-                                for (Cell cell : row) {
-                                    g.setColor (Color.black);
-                                    if (cell instanceof FreshWater) {
-                                        g.setColor (Color.blue);
-                                    }
-                                    if (cell.getFoods () != null) {
-                                        int amount = (int) (cell.getFoodAmount (0) * 15);
-                                        if (cell.getFoodTypes ().size () > 1) {
-                                            amount += (int) (cell.getFoodAmount (1) * 15);
-                                        }
-                                        g.setColor (getGreyscale (amount));
-                                    }
-                                    if (cell.equals (cellSelected)) {
-                                        g.setColor (Color.magenta);
-                                    }
-                                    r = new Rectangle (cell.getAbsX (), cell.getAbsY (), 1, 1);
-                                    g.fill (r);
-                                }
-                            }
-                        }
-                        if (!showAll) {
-                            currentEnviro.getCritters ().forEach (critter -> {
-                                if (critter.getSize () >= 0) {
-                                    Rectangle2D re = new Rectangle (critter.getAbsx (), critter.getAbsy (), 1, 1);
-                                    g.setColor (getRedScale (critter.getSize () * 100, Color.black));
-                                    if (following.contains (critter)) {
-                                        g.setColor (Color.yellow);
-                                    }
-                                    g.fill (re);
-                                }
-                            });
-                        }
-                    }
-                    if (showAll) {
-                        currentEnviro.getCritters ().forEach (critter -> {
-                            if (critter.getSize () >= 0) {
-                                Rectangle2D re = new Rectangle (critter.getAbsx (), critter.getAbsy (), 1, 1);
-                                g.setColor (getRedScale (critter.getSize () * 100, Color.black));
-                                if (following.contains (critter)) {
-                                    g.setColor (Color.yellow);
-                                }
-                                g.fill (re);
-                            }
-                        });
-                    }
-                    WAY TOO EXPENSIVE
-                    if(!biomeView) {
-                        Color alpha = new Color (255, 0, 0, 32 * currentEnviro.getCritters ().size () % 255);
-                        g.setColor (alpha);
-                        g.fill (r);
-                    }
-
-                }
-            });
-        });
-
-         */
 
         g.setColor (Color.red);
         g.drawRect (selectionOriginX, selectionOriginY, selectionEndX - selectionOriginX, selectionEndY - selectionOriginY);
@@ -323,7 +161,6 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
             p.y = p.y - (int) (zoom / 2);
             Point np = new Point ();
             transform.inverseTransform (p, np);
-            System.out.println (np.toString ());
             return np;
         } catch (Exception e) {
             return null;
@@ -334,9 +171,7 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     public void mouseClicked(MouseEvent mouseEvent) {
         if (SwingUtilities.isRightMouseButton (mouseEvent) && mouseEvent.isControlDown ()) {
             Point p = new Point (mouseEvent.getX (), mouseEvent.getY ());
-            System.out.println (p.toString ());
             p = getAbsolutePoint (p);
-            System.out.println (p.toString ());
             cellSelected = w.getAbsCell (p.x, p.y);
             System.out.println (cellSelected);
         }
@@ -466,16 +301,25 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     public void setPopView() {
         biomeView = false;
         humidityView = false;
+        heightView = false;
     }
 
     public void setHumView() {
         biomeView = false;
         humidityView = true;
+        heightView = false;
     }
 
     public void setBiomeView() {
         biomeView = true;
         humidityView = false;
+        heightView = false;
+    }
+
+    public void setHeightView() {
+        biomeView = false;
+        humidityView = false;
+        heightView = true;
     }
 
     public void switchAllView() {
@@ -494,4 +338,6 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     @Override
     public void mouseMoved(MouseEvent mouseEvent) {
     }
+
+
 }

@@ -23,13 +23,13 @@ public class DecisionalCore {
         BitSet set = owner.getCode ().getGene ("PropensionCluster");
         int index = 0;
         for (CellList row : CellList.values ()) {
-            this.propensionMap.put (row.name (), (float) Critter.shiftToRange (0.2, 2, (int) GenCode.convert (set.get (index * 8, index * 8 + 8)), 256));
+            this.propensionMap.put (row.name (), (float) Critter.shiftToRange (0, 4, (int) GenCode.convert (set.get (index * 8, index * 8 + 8)), 256));
             index++;
         }
         set = owner.getCode ().getGene ("CrossingCluster");
         index = 0;
         for (CellList row : CellList.values ()) {
-            this.crossMap.put (row.name (), (float) Critter.shiftToRange (0.2, 2, (int) GenCode.convert (set.get (index * 8, index * 8 + 8)), 256));
+            this.crossMap.put (row.name (), (float) Critter.shiftToRange (0, 4, (int) GenCode.convert (set.get (index * 8, index * 8 + 8)), 256));
             index++;
         }
     }
@@ -73,13 +73,15 @@ public class DecisionalCore {
                                 owner.setMovementProgress (owner.getMovementProgress () - (1 / owner.getSpeed ()));
                                 int[] next = path.removeFirst ();
                                 action += " | " + next[0] + " - " + next[1];
-                                if (owner.moveTo (next[0], next[1])) {
+                                owner.moveTo (next[0], next[1]);
+                                if (owner.getWorld ().getAbsCell (next[0], next[1]) != null) {
                                     ((Solid) owner.getWorld ().getAbsCell (next[0], next[1])).onPassage (owner);
                                 }
                             }
                         } else { //PRIORITA FOTTUTE DA REWORKARE
+                            double food = 0;
                             if (owner.getCell ().getFoods () != null) { //EATONCELL RETURNS TRUE IF THE CRITTER ATE
-                                owner.eatOnCell ();
+                                food = owner.eatOnCell ();
                                 action += "eating ";
                             } else {
                                 if (owner.getCell () instanceof FreshWater && owner.getThirst () > 5) {
@@ -91,7 +93,10 @@ public class DecisionalCore {
                                 action += "hunting ";
                             } else { // PRIORITY 7
                                 action += "pathing ";
-                                path = choosePath ();
+                                if ((food * owner.getHunger () - owner.getThirst ()) / 2 < 30) {
+                                    path = choosePath ();
+                                }
+
                             }
                         }
                     }
@@ -141,6 +146,7 @@ public class DecisionalCore {
                         thirst = owner.getThirst ();
                     }
                     propension -= weights[i + absy][j + absx] * 2;
+                    propension *= propensionMap.get (c.getType ());
                     weight = weights[i + absy][j + absx] * 2;
                     if (propension > max) {
                         max = propension;
@@ -227,8 +233,6 @@ public class DecisionalCore {
 
     public ArrayDeque<int[]> straightPath(int destx, int desty) {
         ArrayDeque<int[]> path = new ArrayDeque<> ();
-        System.out.println ("orig: " + owner.getAbsx () + " - " + owner.getAbsy ());
-        System.out.println ("dest: " + destx + " - " + desty);
         int cx = owner.getAbsx ();
         int cy = owner.getAbsy ();
         while (cx != destx || cy != desty) {
@@ -251,10 +255,7 @@ public class DecisionalCore {
                 break;
             }
         }
-        System.out.println ("PATH");
-
         for (int[] point : path) {
-            System.out.println (point[0] + " - " + point[1]);
             action += " | " + point[0] + " - " + point[1];
         }
         return path;
@@ -332,7 +333,15 @@ public class DecisionalCore {
                     owner.setAlive (false);
                 } else {
                     interacting.setAlive (false);
+                    if (owner.getDietType () >= 6 || owner.getDietType () <= 8) {
+                        if (owner.getDietType () == 7) {
+                            owner.setHunger (owner.getHunger () - interacting.getBiomass () / 2);
+                        } else {
+                            owner.setHunger (owner.getHunger () - interacting.getBiomass () / 4);
+                        }
+                    }
                     interacting = null;
+
                     behaviour = "";
                 }
                 Critter.kDeaths++;

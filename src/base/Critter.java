@@ -142,7 +142,7 @@ public class Critter implements Comparable<Critter> {
         return false;
     }
 
-    public void eatOnCell() {
+    public double eatOnCell() {
         double maxAmount = 0;
         double maxMult = 0;
         int max = -1;
@@ -167,7 +167,9 @@ public class Critter implements Comparable<Critter> {
             this.setHunger (this.getHunger () - maxAmount);
             cell.removeFood (max, amount * size);
             cell.onEat (this);
+            return cell.getEatable (max);
         }
+        return 0;
     }
 
     public void drinkOnCell() {
@@ -212,7 +214,6 @@ public class Critter implements Comparable<Critter> {
 
     public boolean moveTo(int absx, int absy) {
         boolean linear = true;
-        System.out.println ("STEPPING FROM: " + this.absx + " - " + this.absy + " TO " + absx + " - " + absy);
         if (this.absx == world.getFullWidth () - 1 && absx == world.getFullWidth ()) {
             absx = 0;
             linear = false;
@@ -228,9 +229,6 @@ public class Critter implements Comparable<Critter> {
         if (this.absy == 0 && absy < 0) {
             absy = world.getFullHeight () - 1;
             linear = false;
-        }
-        if (!linear) {
-            System.out.println ("WARPING FROM: " + this.absx + " - " + this.absy + " TO " + absx + " - " + absy);
         }
 
         Cell c = world.getAbsCell (absx, absy);
@@ -270,6 +268,10 @@ public class Critter implements Comparable<Critter> {
             decisionalCore.setBehaviour ("seek");
             decisionalCore.setInteracting (other);
         }
+    }
+
+    public double getBiomass() {
+        return (this.getAge () + this.getSize () * 50) / 100;
     }
 
     public Enviro getEnviro() {

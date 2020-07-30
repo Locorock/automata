@@ -28,7 +28,6 @@ public class CritterRender extends JPanel implements ItemListener, WindowStateLi
         scroll = new JScrollPane (actions);
         this.add (scroll);
         showInfo (critters.get (0));
-        System.out.println (this.actions.getText ());
     }
 
     @Override
@@ -51,7 +50,6 @@ public class CritterRender extends JPanel implements ItemListener, WindowStateLi
         this.info.setText (info);
         actions.setText ("<html>");
         for (int i = 0; i < c.getActions ().size (); i++) {
-            System.out.println (c.getActions ().get (i));
             actions.setText (actions.getText () + c.getActions ().get (i) + "<br>");
         }
         actions.setText (actions.getText () + "</html>");

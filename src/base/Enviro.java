@@ -9,10 +9,6 @@ import java.util.Random;
 import static base.Cell.makeCell;
 
 public class Enviro {
-    private Enviro enviroUp;
-    private Enviro enviroDown;
-    private Enviro enviroLeft;
-    private Enviro enviroRight;
     private Enviro[] enviroDirs;
     private double distance;
     private World world;
@@ -107,25 +103,15 @@ public class Enviro {
         }
     }
 
-    public void setDirs() {
-        enviroDirs = new Enviro[4];
-        enviroDirs[0] = getEnviroUp ();
-        enviroDirs[1] = getEnviroRight ();
-        enviroDirs[2] = getEnviroDown ();
-        enviroDirs[3] = getEnviroLeft ();
-    }
-
     public void inheritStats(Enviro parent1, int dir1x, int dir1y) {
         Enviro parent2 = null;
         ArrayList<ArrayList<Enviro>> map = world.getMap ();
-        linkDir (parent1, dir1x, dir1y);
         for (int k = -1; k <= 1; k++) {
             for (int l = -1; l <= 1; l++) {
                 if (!(k == 0 && l == 0) && Math.abs (l + k) == 1) {
                     if (map.get (x + k).get (y + l) != null) {
                         if (parent1 != map.get (x + k).get (y + l)) {
                             parent2 = map.get (x + k).get (y + l);
-                            linkDir (parent2, -k, -l);
                         }
                     }
                 }
@@ -152,26 +138,6 @@ public class Enviro {
 
         this.temperature = avgTemp;
         this.humidity = avgHum;
-        setDirs ();
-    }
-
-    public void linkDir(Enviro parent, int dirx, int diry) {
-        if (dirx == 1 && diry == 0) {
-            parent.setEnviroRight (this);
-            this.setEnviroLeft (parent);
-        }
-        if (dirx == -1 && diry == 0) {
-            parent.setEnviroLeft (this);
-            this.setEnviroRight (parent);
-        }
-        if (dirx == 0 && diry == 1) {
-            parent.setEnviroDown (this);
-            this.setEnviroUp (parent);
-        }
-        if (dirx == 0 && diry == -1) {
-            parent.setEnviroUp (this);
-            this.setEnviroDown (parent);
-        }
     }
 
     public void generate() {
@@ -275,103 +241,6 @@ public class Enviro {
                 grid[i][j] = makeCell (groundName, this);
                 if (grid[i][j].getFoods () != null) {
                     grid[i][j].initFoods ();
-                }
-            }
-        }
-    }
-
-    public Enviro getEnviroUp() {
-        return enviroUp;
-    }
-
-    public void setEnviroUp(Enviro enviroUp) {
-        this.enviroUp = enviroUp;
-    }
-
-    public Enviro getEnviroDown() {
-        return enviroDown;
-    }
-
-    public void setEnviroDown(Enviro enviroDown) {
-        this.enviroDown = enviroDown;
-    }
-
-    public Enviro getEnviroLeft() {
-        return enviroLeft;
-    }
-
-    public void setEnviroLeft(Enviro enviroLeft) {
-        this.enviroLeft = enviroLeft;
-    }
-
-    public Enviro getEnviroRight() {
-        return enviroRight;
-    }
-
-    public void setEnviroRight(Enviro enviroRight) {
-        this.enviroRight = enviroRight;
-    }
-
-    public ArrayList<Enviro>[] scanNeighbours(int dim) {
-        ArrayList<Enviro>[] scanned = new ArrayList[dim];
-
-        for (int i = 0; i < dim; i++) {
-            scanned[i] = new ArrayList<> ();
-        }
-        scanned[0].add (this);
-
-        if (this.getEnviroRight () != null)
-            scan (this.getEnviroRight (), 1, dim, scanned, 0);
-        if (this.getEnviroDown () != null)
-            scan (this.getEnviroDown (), 1, dim, scanned, 1);
-        if (this.getEnviroLeft () != null)
-            scan (this.getEnviroLeft (), 1, dim, scanned, 2);
-        if (this.getEnviroUp () != null)
-            scan (this.getEnviroUp (), 1, dim, scanned, 3);
-
-        return scanned;
-    }
-
-    public void scan(Enviro enviro, int distance, int dim, ArrayList<Enviro>[] scanned, int quadrant) {
-        if (distance >= dim) {
-            return;
-        }
-        boolean tag = false;
-        for (int i = 0; i < scanned.length; i++) {
-            if (scanned[i].contains (enviro)) {
-                tag = true;
-            }
-        }
-        if (tag == false) {
-            scanned[distance].add (enviro);
-            switch (quadrant) {
-                case 0: {
-                    if (enviro.getEnviroUp () != null)
-                        scan (enviro.getEnviroUp (), distance + 1, dim, scanned, 0);
-                    if (enviro.getEnviroRight () != null)
-                        scan (enviro.getEnviroRight (), distance + 1, dim, scanned, 0);
-                    break;
-                }
-                case 1: {
-                    if (enviro.getEnviroRight () != null)
-                        scan (enviro.getEnviroRight (), distance + 1, dim, scanned, 1);
-                    if (enviro.getEnviroDown () != null)
-                        scan (enviro.getEnviroDown (), distance + 1, dim, scanned, 1);
-                    break;
-                }
-                case 2: {
-                    if (enviro.getEnviroDown () != null)
-                        scan (enviro.getEnviroDown (), distance + 1, dim, scanned, 2);
-                    if (enviro.getEnviroLeft () != null)
-                        scan (enviro.getEnviroLeft (), distance + 1, dim, scanned, 2);
-                    break;
-                }
-                case 3: {
-                    if (enviro.getEnviroLeft () != null)
-                        scan (enviro.getEnviroLeft (), distance + 1, dim, scanned, 3);
-                    if (enviro.getEnviroUp () != null)
-                        scan (enviro.getEnviroUp (), distance + 1, dim, scanned, 3);
-                    break;
                 }
             }
         }

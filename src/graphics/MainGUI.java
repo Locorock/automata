@@ -11,7 +11,7 @@ import java.util.concurrent.CountDownLatch;
 
 public class MainGUI implements KeyListener, ActionListener, WindowListener {
     private final World w;
-    private final ArrayList<CritterRender> openRenders;
+    private final ArrayList<JPanel> openRenders;
     public AdvancedWorldRenderer panel;
     public WorldMenuBar menu;
     private CountDownLatch latch;
@@ -19,7 +19,7 @@ public class MainGUI implements KeyListener, ActionListener, WindowListener {
 
     public MainGUI(World w) {
         this.w = w;
-        openRenders = new ArrayList<CritterRender> ();
+        openRenders = new ArrayList<JPanel> ();
         javax.swing.SwingUtilities.invokeLater (new Runnable () {
             public void run() {
                 createAndShowGUI ();
@@ -44,9 +44,15 @@ public class MainGUI implements KeyListener, ActionListener, WindowListener {
         panel.following.clear ();
         panel.repaint ();
         for (int i = 0; i < openRenders.size (); i++) {
-            CritterRender cr = openRenders.get (i);
-            cr.refresh (panel.following);
-            System.out.println ("FRESHO");
+            if (openRenders.get (i) instanceof CritterRender) {
+                CritterRender cr = (CritterRender) openRenders.get (i);
+                cr.refresh (panel.following);
+            }
+            if (openRenders.get (i) instanceof Graph) {
+                Graph g = (Graph) openRenders.get (i);
+                g.refresh (w);
+            }
+
         }
         latch.countDown ();
     }
@@ -55,7 +61,6 @@ public class MainGUI implements KeyListener, ActionListener, WindowListener {
     public void actionPerformed(ActionEvent actionEvent) {
         JComponent comp = (JComponent) actionEvent.getSource ();
         String name = comp.getName ();
-        System.out.println (name);
         switch (name) {
             case "biomeView": {
                 panel.setBiomeView ();
@@ -71,6 +76,10 @@ public class MainGUI implements KeyListener, ActionListener, WindowListener {
             }
             case "allView": {
                 panel.switchAllView ();
+                break;
+            }
+            case "heightView": {
+                panel.setHeightView ();
                 break;
             }
         }
@@ -111,6 +120,15 @@ public class MainGUI implements KeyListener, ActionListener, WindowListener {
 
             }
         }
+        if (key == KeyEvent.VK_G) {
+            JFrame f = new JFrame ();
+            f.addWindowListener (this);
+            f.setSize (300, 400);
+            Graph cr = new Graph ("PopDelta");
+            f.setContentPane (cr);
+            openRenders.add (cr);
+            f.setVisible (true);
+        }
         if (key == KeyEvent.VK_F) {
             w.getT ().loop = true;
         }
@@ -123,7 +141,7 @@ public class MainGUI implements KeyListener, ActionListener, WindowListener {
     public void windowClosing(WindowEvent windowEvent) {
         System.out.println ("CLOSED");
         if (windowEvent.getSource () != this) {
-            CritterRender cr = (CritterRender) ((JFrame) windowEvent.getSource ()).getContentPane ();
+            JPanel cr = (JPanel) ((JFrame) windowEvent.getSource ()).getContentPane ();
             openRenders.remove (cr);
         }
     }

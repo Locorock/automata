@@ -40,7 +40,7 @@ public class GeneLibrary {
         FoodEff (8, 2),
         BaseSpeed (8, 2),
         Height (8, 2),
-        DietType (7, 1),
+        DietType (9, 1),
         Aggressiveness (32, 1),
         WebbedFeet (8, 2),
         Size (32, 1),
