@@ -1,5 +1,6 @@
 package graphics;
 
+import base.Cell;
 import base.Critter;
 import base.World;
 
@@ -11,15 +12,16 @@ import java.util.concurrent.CountDownLatch;
 
 public class MainGUI implements KeyListener, ActionListener, WindowListener {
     private final World w;
-    private final ArrayList<JPanel> openRenders;
+    public ArrayList<InfoPanel> openRenders;
     public AdvancedWorldRenderer panel;
     public WorldMenuBar menu;
     private CountDownLatch latch;
     private JFrame frame;
+    public int lastCycleTime;
 
     public MainGUI(World w) {
         this.w = w;
-        openRenders = new ArrayList<JPanel> ();
+        openRenders = new ArrayList<InfoPanel> ();
         javax.swing.SwingUtilities.invokeLater (new Runnable () {
             public void run() {
                 createAndShowGUI ();
@@ -39,21 +41,34 @@ public class MainGUI implements KeyListener, ActionListener, WindowListener {
         frame.addKeyListener (this);
     }
 
+    public static String getFixedString(int original, int length) {
+        String originalS = original + "";
+        String result = "";
+        if (originalS.length () > length) {
+            return originalS + "";
+        }
+        for (int i = 0; i < 8 - originalS.length (); i++) {
+            result += " ";
+        }
+        result += originalS;
+        return result;
+    }
+
     public void update(CountDownLatch latch) {
         this.latch = latch;
         panel.following.clear ();
         panel.repaint ();
         for (int i = 0; i < openRenders.size (); i++) {
-            if (openRenders.get (i) instanceof CritterRender) {
-                CritterRender cr = (CritterRender) openRenders.get (i);
-                cr.refresh (panel.following);
-            }
-            if (openRenders.get (i) instanceof Graph) {
-                Graph g = (Graph) openRenders.get (i);
-                g.refresh (w);
-            }
-
+            InfoPanel cr = openRenders.get (i);
+            cr.refresh ();
         }
+
+        menu.pop.setText (getFixedString (w.getCritters ().size (), 5));
+        menu.fDeaths.setText (getFixedString (Critter.fDeaths, 4));
+        menu.tDeaths.setText (getFixedString (Critter.tDeaths, 4));
+        menu.aDeaths.setText (getFixedString (Critter.aDeaths, 4));
+        menu.kDeaths.setText (getFixedString (Critter.kDeaths, 4));
+        menu.ticks.setText (getFixedString (lastCycleTime, 4));
         latch.countDown ();
     }
 
@@ -81,6 +96,16 @@ public class MainGUI implements KeyListener, ActionListener, WindowListener {
             case "heightView": {
                 panel.setHeightView ();
                 break;
+            }
+            case "critterInfo": {
+                Cell c = ((PopupMenu) comp.getParent ()).c;
+                CellInfo ci = new CellInfo (c);
+                JFrame f = new JFrame ();
+                f.addWindowListener (this);
+                f.setSize (300, 400);
+                f.setContentPane (ci);
+                openRenders.add (ci);
+                f.setVisible (true);
             }
         }
         panel.repaint ();
@@ -112,7 +137,7 @@ public class MainGUI implements KeyListener, ActionListener, WindowListener {
                     JFrame f = new JFrame ();
                     f.addWindowListener (this);
                     f.setSize (300, 400);
-                    CritterRender cr = new CritterRender (found);
+                    CritterInfo cr = new CritterInfo (found, panel);
                     f.setContentPane (cr);
                     openRenders.add (cr);
                     f.setVisible (true);
@@ -124,7 +149,7 @@ public class MainGUI implements KeyListener, ActionListener, WindowListener {
             JFrame f = new JFrame ();
             f.addWindowListener (this);
             f.setSize (300, 400);
-            Graph cr = new Graph ("PopDelta");
+            Graph cr = new Graph ("PopDelta", w);
             f.setContentPane (cr);
             openRenders.add (cr);
             f.setVisible (true);

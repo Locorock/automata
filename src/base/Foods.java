@@ -26,17 +26,16 @@ public class Foods {
             if (foodAmounts.get (i) < maxAmounts.get (i)) {
                 double amount = foodAmounts.get (i) + enviro.getHumidity () * growthRates.get (i) / 30;
                 this.foodAmounts.set (i, amount);
-            }
-            if (foodTypes.contains (6)) {
-                int index = foodTypes.indexOf (6);
-                if (foodAmounts.get (index) <= 0) {
-                    foodAmounts.remove (index);
-                    foodTypes.remove (index);
-                    growthRates.remove (index);
-                    maxAmounts.remove (index);
+                if (foodAmounts.get (i) <= 0) {
+                    foodAmounts.remove (i);
+                    foodTypes.remove (i);
+                    growthRates.remove (i);
+                    maxAmounts.remove (i);
+                    i--;
+                    toDelete = foodAmounts.size () == 0;
                 }
             }
-            toDelete = foodAmounts.size () == 0;
+
         }
     }
 
@@ -66,6 +65,22 @@ public class Foods {
     public double getFood(int index) {
         double amount = this.foodAmounts.get (index) / 20;
         return amount;
+    }
+
+    public ArrayList<Double> getMaxAmounts() {
+        return maxAmounts;
+    }
+
+    public ArrayList<Double> getGrowthRates() {
+        return growthRates;
+    }
+
+    public void setGrowthRates(ArrayList<Double> growthRates) {
+        this.growthRates = growthRates;
+    }
+
+    public String toString(int i) {
+        return "Type " + getFoodTypes ().get (i) + " | Amount " + getFoodAmount (i) + " | MaxAmount " + getMaxAmounts ().get (i) + " | GrowthRate " + getGrowthRates ().get (i);
     }
 
     public void removeFood(int index, double amount) {

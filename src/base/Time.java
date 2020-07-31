@@ -69,7 +69,7 @@ public class Time extends Thread {
                 ticks = 0;
             }
             elapsed = (double) (System.nanoTime () - start) / 1000000;
-            gui.panel.lastCycleTime = elapsed;
+            gui.lastCycleTime = (int) elapsed;
             gui.panel.totalAmount = w.getCritters ().size ();
             if (elapsed < tickSize && tickSize != 0)
                 sleep ((long) tickSize - (long) elapsed);

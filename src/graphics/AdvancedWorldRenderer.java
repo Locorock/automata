@@ -37,7 +37,6 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
     private int dragStartX = 0;
     private int dragStartY = 0;
     public int totalAmount = 0;
-    public double lastCycleTime = 0;
     private int count = 0;
     private Cell cellSelected;
     private CountDownLatch latch;
@@ -136,19 +135,6 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
         g.drawRect (selectionOriginX, selectionOriginY, selectionEndX - selectionOriginX, selectionEndY - selectionOriginY);
         g.setFont (g.getFont ().deriveFont ((float) (g.getFont ().getSize () / zoom)));
         g.drawString (String.valueOf (count), selectionOriginX, selectionOriginY);
-        g.drawString (String.valueOf (totalAmount), (int) (g.getClipBounds ().getX () + 120 / zoom), (int) (g.getClipBounds ().getY () + 40 / zoom));
-        g.drawString (String.valueOf (lastCycleTime), (int) (g.getClipBounds ().getX () + 40 / zoom), (int) (g.getClipBounds ().getY () + 40 / zoom));
-        if (cellSelected != null) {
-            g.drawString (String.valueOf (cellSelected.type), (int) (g.getClipBounds ().getX () + 40 / zoom), (int) (g.getClipBounds ().getY () + 80 / zoom));
-            if (cellSelected.getFoods () != null) {
-                g.drawString (cellSelected.getFoodAmount (0) + "", (int) (g.getClipBounds ().getX () + 120 / zoom), (int) (g.getClipBounds ().getY () + 80 / zoom));
-                g.drawString (cellSelected.getFoods ().growthRates.get (0) + "", (int) (g.getClipBounds ().getX () + 480 / zoom), (int) (g.getClipBounds ().getY () + 80 / zoom));
-            }
-        }
-        g.drawString (String.valueOf (Critter.fDeaths), (int) (g.getClipBounds ().getX () + 400 / zoom), (int) (g.getClipBounds ().getY () + 40 / zoom));
-        g.drawString (String.valueOf (Critter.tDeaths), (int) (g.getClipBounds ().getX () + 440 / zoom), (int) (g.getClipBounds ().getY () + 40 / zoom));
-        g.drawString (String.valueOf (Critter.aDeaths), (int) (g.getClipBounds ().getX () + 480 / zoom), (int) (g.getClipBounds ().getY () + 40 / zoom));
-        g.drawString (String.valueOf (Critter.kDeaths), (int) (g.getClipBounds ().getX () + 520 / zoom), (int) (g.getClipBounds ().getY () + 40 / zoom));
         if (latch != null) {
             this.latch.countDown ();
         }
@@ -169,30 +155,18 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
 
     @Override
     public void mouseClicked(MouseEvent mouseEvent) {
-        if (SwingUtilities.isRightMouseButton (mouseEvent) && mouseEvent.isControlDown ()) {
+        if (SwingUtilities.isMiddleMouseButton (mouseEvent) && mouseEvent.isControlDown ()) {
             Point p = new Point (mouseEvent.getX (), mouseEvent.getY ());
             p = getAbsolutePoint (p);
             cellSelected = w.getAbsCell (p.x, p.y);
             System.out.println (cellSelected);
-        }
-        if (SwingUtilities.isRightMouseButton (mouseEvent) && mouseEvent.isShiftDown ()) {
-            biomeView = !biomeView;
-        }
-        if (SwingUtilities.isRightMouseButton (mouseEvent) && mouseEvent.isShiftDown () && mouseEvent.isAltDown ()) {
-            spheed = !spheed;
-        }
-        if (SwingUtilities.isRightMouseButton (mouseEvent) && mouseEvent.isAltDown () && mouseEvent.isControlDown ()) {
-            showAll = !showAll;
-        }
-        if (SwingUtilities.isRightMouseButton (mouseEvent) && mouseEvent.isAltGraphDown ()) {
-            humidityView = !humidityView;
         }
     }
 
 
     @Override
     public void mousePressed(MouseEvent mouseEvent) {
-        if (SwingUtilities.isLeftMouseButton (mouseEvent)) {
+        if (SwingUtilities.isMiddleMouseButton (mouseEvent)) {
             selectionOriginX = getAbsolutePoint (mouseEvent.getPoint ()).x;
             selectionOriginY = getAbsolutePoint (mouseEvent.getPoint ()).y;
             selectionEndX = selectionOriginX;
@@ -206,16 +180,26 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
             System.out.println (count);
             repaint ();
         } else {
-            dragStartX = mouseEvent.getX ();
-            dragStartY = mouseEvent.getY ();
-            cameraPosX = dragStartX;
-            cameraPosY = dragStartY;
+            if (SwingUtilities.isLeftMouseButton (mouseEvent)) {
+                dragStartX = mouseEvent.getX ();
+                dragStartY = mouseEvent.getY ();
+                cameraPosX = dragStartX;
+                cameraPosY = dragStartY;
+            } else {
+                if (mouseEvent.isPopupTrigger ()) {
+
+                    Point p = getAbsolutePoint (mouseEvent.getPoint ());
+                    Cell cellSelected = w.getAbsCell (p.x, p.y);
+                    PopupMenu menu = new PopupMenu (w.gui, cellSelected);
+                    menu.show (mouseEvent.getComponent (), mouseEvent.getX (), mouseEvent.getY ());
+                }
+            }
         }
     }
 
     @Override
     public void mouseReleased(MouseEvent mouseEvent) {
-        if (SwingUtilities.isLeftMouseButton (mouseEvent) && !mouseEvent.isControlDown ()) {
+        if (SwingUtilities.isMiddleMouseButton (mouseEvent) && !mouseEvent.isControlDown ()) {
             selectionEndX = getAbsolutePoint (mouseEvent.getPoint ()).x;
             selectionEndY = getAbsolutePoint (mouseEvent.getPoint ()).y;
             count = 0;
@@ -249,24 +233,28 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
             jf.add (jp);
 
         } else {
-            oldPosX = oldPosX + cameraPosX - dragStartX;
-            oldPosY = oldPosY + cameraPosY - dragStartY;
-            cameraPosX = 0;
-            cameraPosY = 0;
-            dragStartX = 0;
-            dragStartY = 0;
+            if (SwingUtilities.isLeftMouseButton (mouseEvent)) {
+                oldPosX = oldPosX + cameraPosX - dragStartX;
+                oldPosY = oldPosY + cameraPosY - dragStartY;
+                cameraPosX = 0;
+                cameraPosY = 0;
+                dragStartX = 0;
+                dragStartY = 0;
+            }
         }
         repaint ();
     }
 
     @Override
     public void mouseDragged(MouseEvent mouseEvent) {
-        if (SwingUtilities.isLeftMouseButton (mouseEvent)) {
+        if (SwingUtilities.isMiddleMouseButton (mouseEvent)) {
             selectionEndX = getAbsolutePoint (mouseEvent.getPoint ()).x;
             selectionEndY = getAbsolutePoint (mouseEvent.getPoint ()).y;
         } else {
-            cameraPosX = mouseEvent.getX ();
-            cameraPosY = mouseEvent.getY ();
+            if (SwingUtilities.isLeftMouseButton (mouseEvent)) {
+                cameraPosX = mouseEvent.getX ();
+                cameraPosY = mouseEvent.getY ();
+            }
         }
         repaint ();
     }
@@ -279,6 +267,13 @@ public class AdvancedWorldRenderer extends JPanel implements MouseMotionListener
         }
         renderThreshold = 10 + (this.getWidth () * this.getHeight ()) / 520000;
         repaint ();
+    }
+
+    public Cell getPointingCell() {
+        Point p = new Point (this.getMousePosition ().x, this.getMousePosition ().y);
+        p = getAbsolutePoint (p);
+        cellSelected = w.getAbsCell (p.x, p.y);
+        return cellSelected;
     }
 
     public Cell getCellSelected() {

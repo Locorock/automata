@@ -10,13 +10,17 @@ import java.awt.event.WindowStateListener;
 import java.util.ArrayList;
 import java.util.Vector;
 
-public class CritterRender extends JPanel implements ItemListener, WindowStateListener {
+public class CritterInfo extends JPanel implements ItemListener, WindowStateListener, InfoPanel {
     private final JLabel info;
     private final JComboBox selection;
     private final JLabel actions;
     private final JScrollPane scroll;
+    private final ArrayList<Critter> critters;
+    private final AdvancedWorldRenderer panel;
 
-    public CritterRender(ArrayList<Critter> critters) {
+    public CritterInfo(ArrayList<Critter> critters, AdvancedWorldRenderer panel) {
+        this.critters = critters;
+        this.panel = panel;
         BoxLayout layout = new BoxLayout (this, BoxLayout.Y_AXIS);
         this.setLayout (layout);
         selection = new JComboBox (new Vector (critters));
@@ -27,7 +31,7 @@ public class CritterRender extends JPanel implements ItemListener, WindowStateLi
         actions = new JLabel ();
         scroll = new JScrollPane (actions);
         this.add (scroll);
-        showInfo (critters.get (0));
+        showInfo ();
     }
 
     @Override
@@ -36,7 +40,8 @@ public class CritterRender extends JPanel implements ItemListener, WindowStateLi
 
     }
 
-    public void showInfo(Critter c) {
+    public void showInfo() {
+        Critter c = (Critter) selection.getSelectedItem ();
         String info = "<html>" + c.getName () + "<br>";
         info += "Hunger: " + (float) c.getHunger () + " / " + c.getMaxHunger () + "<br>";
         info += "Thirst: " + (float) c.getThirst () + " / " + c.getMaxThirst () + "<br>";
@@ -55,9 +60,9 @@ public class CritterRender extends JPanel implements ItemListener, WindowStateLi
         actions.setText (actions.getText () + "</html>");
     }
 
-    public void refresh(ArrayList<Critter> following) {
-        following.add ((Critter) selection.getSelectedItem ());
-        showInfo ((Critter) selection.getSelectedItem ());
+    public void refresh() {
+        panel.following.add ((Critter) selection.getSelectedItem ());
+        showInfo ();
     }
 
     @Override

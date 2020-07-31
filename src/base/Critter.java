@@ -271,7 +271,7 @@ public class Critter implements Comparable<Critter> {
     }
 
     public double getBiomass() {
-        return (this.getAge () + this.getSize () * 50) / 100;
+        return (this.getAge () + this.getSize () * 50) / 200;
     }
 
     public Enviro getEnviro() {

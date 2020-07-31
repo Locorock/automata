@@ -20,7 +20,8 @@ public abstract class Living extends Cell implements Solid {
     }
 
     public void tick() {
-        if (timeToLive != -1) {
+        super.tick ();
+        if (false) { //timeToLive != -1 THERE'S NO WAY FOR TREES SO SPREAD SO FOR NOW JUST MAKE THEM IMMORTAL
             if (isAlive ()) {
                 timeToLive--;
                 if (timeToLive <= 0) {

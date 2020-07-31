@@ -10,16 +10,18 @@ import org.jfree.data.xy.XYSeriesCollection;
 import javax.swing.*;
 import java.awt.*;
 
-public class Graph extends JPanel {
+public class Graph extends JPanel implements InfoPanel {
     XYSeries xy;
     XYSeriesCollection ds;
     ChartPanel panel;
     JFreeChart chart;
+    World w;
     double[][] series;
 
-    public Graph(String type) {
+    public Graph(String type, World w) {
         this.setPreferredSize (new Dimension (400, 100));
         this.setName (type);
+        this.w = w;
         xy = new XYSeries ("turn");
         xy.add (0, 0);
         ds = new XYSeriesCollection ();
@@ -29,7 +31,7 @@ public class Graph extends JPanel {
         this.add (panel);
     }
 
-    public void refresh(World w) {
+    public void refresh() {
         //double current = w.getCritters ().size ()-w.getT().lastPop;
         double current = w.getCritters ().size ();
         System.out.println ("Curr: " + current + " da: " + w.getT ().lastPop + " a " + w.getCritters ().size ());
