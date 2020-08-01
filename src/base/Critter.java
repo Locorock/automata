@@ -124,8 +124,18 @@ public class Critter implements Comparable<Critter> {
                 mateElapsedTime--;
             }
         }
+        double start = System.nanoTime ();
         action += decisionalCore.act ();
-        actions.add (action);
+        if (action != null && !action.equals ("")) {
+            String sub = action.substring (0, 2);
+            try {
+                Time.times.put (sub, Time.times.get (sub) + (System.nanoTime () - start) / 1000000);
+            } catch (NullPointerException e) {
+                Time.times.put (sub, (System.nanoTime () - start) / 1000000);
+            }
+
+            actions.add (action);
+        }
         if (actions.size () > 40) {
             actions.remove (0);
         }

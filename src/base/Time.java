@@ -5,6 +5,7 @@ import graphics.MainGUI;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
@@ -23,6 +24,8 @@ public class Time extends Thread {
     public double lastPop = 0;
     public boolean running = false;
     public boolean loop = false;
+    public static HashMap<String, Double> times;
+    public static double[] totals;
 
     public Time(double tickSize, int cycleSize, World w) {
         this.tickSize = tickSize;
@@ -62,7 +65,12 @@ public class Time extends Thread {
                 latch.await ();
             }
             lastPop = w.getCritters ().size ();
+            times = new HashMap<String, Double> ();
+            totals = new double[]{0, 0, 0};
             tick ();
+            System.out.println (totals[0] + ", " + totals[1] + ", " + totals[2]);
+            System.out.println (times.toString ());
+            System.out.println ("Tick: " + (System.nanoTime () - start) / 1000000);
             ticks++;
             if (ticks >= cycleSize) {
                 cycle ();
@@ -84,7 +92,7 @@ public class Time extends Thread {
                 c.tick ();
             } else {
                 Foods foods = c.getCell ().getFoods ();
-                double amount = c.getBiomass () / 2;  //CORPSE FOOD VALUE
+                double amount = c.getBiomass () / 4;  //CORPSE FOOD VALUE
                 if (foods != null) {
                     if (foods.getFoodTypes ().contains (6)) {
                         int index = foods.getFoodTypes ().indexOf (6);
@@ -111,6 +119,7 @@ public class Time extends Thread {
     }
 
     public void generateEvents() {
+        long start = System.nanoTime ();
         for (EventList event : EventList.values ()) {
             for (Enviro enviro : w.getEnviros ()) {
                 if (event.getBiomes () == null || event.getBiomes ().contains (enviro.getBiome ())) {
