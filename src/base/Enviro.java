@@ -62,7 +62,7 @@ public class Enviro {
         double temp = this.getAvgTemp ();
         double hum = this.getAvgHum ();
 
-        if (this.getAltitude () <= 0.15) {
+        if (this.getAltitude () <= world.data.worldGenParams.get ("seaLevel")) {
             this.biome = "Ocean";
         } else {
             ArrayList<Double> wProbs = new ArrayList<> ();
@@ -101,43 +101,6 @@ public class Enviro {
         for (int i = 0; i < width; i++) {
             grid[i] = new Cell[width];
         }
-    }
-
-    public void inheritStats(Enviro parent1, int dir1x, int dir1y) {
-        Enviro parent2 = null;
-        ArrayList<ArrayList<Enviro>> map = world.getMap ();
-        for (int k = -1; k <= 1; k++) {
-            for (int l = -1; l <= 1; l++) {
-                if (!(k == 0 && l == 0) && Math.abs (l + k) == 1) {
-                    if (map.get (x + k).get (y + l) != null) {
-                        if (parent1 != map.get (x + k).get (y + l)) {
-                            parent2 = map.get (x + k).get (y + l);
-                        }
-                    }
-                }
-            }
-        }
-        if (parent2 == null) {
-            this.avgTemp = parent1.getAvgTemp ();
-            this.avgHum = parent1.getAvgHum ();
-            this.altitude = parent1.getAltitude ();
-            this.distance = parent1.getDistance ();
-            this.distance += 1.1 + ((r.nextGaussian () - 0.5) / 1.8); // 1.8 def
-        } else {
-            this.avgTemp = (parent1.getAvgTemp () + parent2.getAvgTemp ()) / 2;
-            this.avgHum = (parent1.getAvgHum () + parent2.getAvgHum ()) / 2;
-            this.altitude = (parent1.getAltitude () + parent2.getAltitude ()) / 2;
-            this.distance = (parent1.getDistance () + parent2.getDistance ()) / 2;
-            this.distance += 1 + ((r.nextGaussian () - 0.5) / 1.8); // 1.8 def
-        }
-
-        this.avgTemp += r.nextGaussian () * 5;  //VARIANZA STATISTICHE MONDO
-        this.avgHum += r.nextGaussian () * 5;
-        this.avgHum = Math.abs (this.avgHum);
-        this.altitude = this.altitude + (r.nextGaussian () * 3 - 2);
-
-        this.temperature = avgTemp;
-        this.humidity = avgHum;
     }
 
     public void generate() {

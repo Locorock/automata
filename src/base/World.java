@@ -25,10 +25,13 @@ public class World {
     public ArrayDeque<Cell> cells = new ArrayDeque<> ();
     public ArrayDeque<Cell> updates = new ArrayDeque<> ();
     public MainGUI gui;
+    public WorldData data;
+
 
     public World() {
         int seed = new Random ().nextInt (10000);
         this.r = new Random (seed);
+        this.data = new WorldData ();
         //generateWorldNobs (size, 20, 30, 80);
         generateWorldSimplex (size, 0, 0);
         GeneLibrary gl = new GeneLibrary ();
@@ -40,10 +43,8 @@ public class World {
             critters.add (c2);
         }
         gui = new MainGUI (this);
-        System.out.println ("Finished");
         t = new Time (tickSpeed, 20, this);
         t.start ();
-        System.out.println ("Timing");
     }
 
     public static void main(String[] args) {
@@ -79,75 +80,8 @@ public class World {
         return "";
     }
 
-    private float[][] circularFilter(float[][] map) {
-        float[][] result = new float[map.length][map.length];
-        int centerX = size / 2, centerY = size / 2;
-        double[][] grad = new double[map.length][map.length];
-        double max = 0;
-        for (int i = 0; i < map.length; i++) {
-            for (int j = 0; j < map.length; j++) {
-                int distx = Math.abs (j - centerX) * 2;
-                int disty = Math.abs (i - centerY) * 2;
-                grad[i][j] = Math.sqrt (distx * distx + disty * disty);
-                if (grad[i][j] > max) {
-                    max = grad[i][j];
-                }
-            }
-        }
-        double max2 = 0;
-        for (int i = 0; i < map.length; i++) {
-            for (int j = 0; j < map.length; j++) {
-                if (grad[i][j] > max2) {
-                    max2 = grad[i][j];
-                }
-            }
-        }
-        for (int i = 0; i < map.length; i++) {
-            for (int j = 0; j < map.length; j++) {
-                grad[i][j] = max2 - grad[i][j];
-                grad[i][j] /= max2;
-                result[i][j] = (float) ((grad[i][j]) * map[i][j]) + 0.05f;   //ATTENZIONE, ALTA MATEMATICA, CAMBIA IL NUMERO PER L'OFFSET E SBATTITENE
-            }
-        }
-        for (int i = 0; i < grad.length; i++) {
-            for (int j = 0; j < grad.length; j++) {
-                System.out.print (" " + grad[i][j] + " ");
-            }
-            System.out.println ();
-        }
-
-        return result;
-    }
-
-    private float[][] circularFilterNew(float[][] map) {
-        float[][] result = new float[map.length][map.length];
-        int centerX = size / 2, centerY = size / 2;
-        double[][] grad = new double[map.length][map.length];
-        double max = 0;
-        for (int i = 0; i < map.length; i++) {
-            for (int j = 0; j < map.length; j++) {
-                int distx = Math.abs (j - centerX);
-                int disty = Math.abs (i - centerY);
-                grad[i][j] = 800 / (distx * distx + disty * disty + 1);
-            }
-        }
-        for (int i = 0; i < map.length; i++) {
-            for (int j = 0; j < map.length; j++) {
-                result[i][j] = (float) (((grad[i][j] / 2) * map[i][j]) + 0.1);   //ATTENZIONE, ALTA MATEMATICA, CAMBIA IL NUMERO PER L'OFFSET E SBATTITENE
-            }
-        }
-        for (int i = 0; i < grad.length; i++) {
-            for (int j = 0; j < grad.length; j++) {
-                System.out.print (" " + grad[i][j] + " ");
-            }
-            System.out.println ();
-        }
-
-        return result;
-    }
-
     private void generateWorldSimplex(int size, int skew, int magnitude) {
-        float[][] heightMap = circularFilter (generateOctavedSimplexNoise (size, size, 3, 0.05f, 0.09f, r));
+        float[][] heightMap = generateOctavedSimplexNoise (size, size, 3, 0.05f, data.worldGenParams.get ("landSize").floatValue (), r);
         float[][] heatMap = generateOctavedSimplexNoise (size, size, 3, 0.1f, 0.01f, r);
         float[][] humidityMap = generateOctavedSimplexNoise (size, size, 3, 0.1f, 0.01f, r);
         map = new ArrayList<ArrayList<Enviro>> ();
@@ -155,9 +89,9 @@ public class World {
             map.add (new ArrayList<> ());
             for (int j = 0; j < size; j++) {
                 double dist = (Math.abs (j - size / 2) + Math.abs (i - size / 2));
-                double height = heightMap[i][j];
-                double temp = Math.abs (heatMap[i][j]) * 100;
-                double hum = Math.abs (humidityMap[i][j]) * 100 + 10;
+                double height = (((heightMap[i][j] + 1) / 2) * 128) - nearBorderValue (j, i);
+                double temp = Math.abs (heatMap[i][j]) * 100 + data.worldGenParams.get ("tempOffset");
+                double hum = Math.abs (humidityMap[i][j]) * 100 * data.worldGenParams.get ("humMult") + 10;
 
                 Enviro e = new Enviro (temp, height, hum, null, this, r, j, i);
                 map.get (i).add (e);
@@ -167,6 +101,30 @@ public class World {
         //generateRivers ();
         coordinateCells ();
         printBiomes ();
+        for (int i = 0; i < 48; i++) {
+            for (int j = 0; j < 48; j++) {
+                System.out.print (heightMap[j][i] + " ");
+            }
+            System.out.println ();
+        }
+    }
+
+    private int nearBorderValue(int j, int i) {
+        int n = 0;
+        if (size - i <= 6) {
+            n += 6 - (size - i);
+        }
+        if (size - j <= 6) {
+            n += 6 - (size - j);
+        }
+        if (i <= 6) {
+            n += 6 - i;
+        }
+        if (j <= 6) {
+            n += 6 - j;
+        }
+        System.out.println (n);
+        return n * 15;
     }
 
     private void generateWorldNobs(int max, double temp, double hum, int alt) {
@@ -196,7 +154,6 @@ public class World {
                                         Enviro env = new Enviro (0, 0, 0, "", this, r);
                                         env.setX (i + k);
                                         env.setY (j + l);
-                                        env.inheritStats (map.get (i).get (j), k, l);
                                         map.get (i + k).set (j + l, env);
                                         env.setBiome (assignBiome (env));
                                         env.generate ();

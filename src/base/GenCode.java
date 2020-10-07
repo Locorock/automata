@@ -15,11 +15,6 @@ public class GenCode {
                 code.set (i, b.getCode ().get (i));
             }
         }
-        for (int i = 0; i < code.size (); i++) {
-            if (r.nextInt (500) == 0) {
-                code.flip (i);
-            }
-        }
     }
 
     //RANODM GENOME
@@ -36,7 +31,7 @@ public class GenCode {
         code = (BitSet) genericCode.clone ();
     }
 
-    //DEFINED GENOME WITH INTEGERS
+    //DEFINED GENOME WITH INTEGERS DA CONTROLLARE
     public GenCode(int[] genes, Random r) {
         code = new BitSet ();
         int i = 0, offset = 0;
@@ -58,7 +53,6 @@ public class GenCode {
             i++;
             offset += key.getSize ();
         }
-        mutate (r);
     }
 
     public static long convert(BitSet bits) {
@@ -111,7 +105,7 @@ public class GenCode {
         return b;
     }
 
-    public void mutate(Random r) {
+    public void mutate(Random r, double rate) {
         for (int i = 0; i < code.size (); i++) {
             if (r.nextInt (5000) == 0) {
                 code.flip (i);

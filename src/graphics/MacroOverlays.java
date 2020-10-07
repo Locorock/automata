@@ -243,7 +243,7 @@ public class MacroOverlays {
     public static void heightView(Graphics2D g, World w, AdvancedWorldRenderer panel) {
         ((ArrayList<ArrayList<Enviro>>) w.getMap ().clone ()).forEach (current -> {
             ((ArrayList<Enviro>) current.clone ()).forEach (currentEnviro -> {
-                Color c = getGreyscale (currentEnviro.getAltitude () * 10);
+                Color c = getGreyscale (currentEnviro.getAltitude ());
                 g.setColor (c);
                 Rectangle2D r = new Rectangle (wUnit * currentEnviro.getX (), wUnit * currentEnviro.getY (), Math.round (wUnit), Math.round (wUnit));
                 if (isOnScreen (r, g)) {

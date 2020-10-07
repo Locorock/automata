@@ -13,6 +13,7 @@ public class Critter implements Comparable<Critter> {
     public static int fDeaths = 0;
     public static int aDeaths = 0;
     public static int kDeaths = 0;
+
     public String name;
     public ArrayDeque<int[]> path;
     private Enviro enviro;
@@ -30,9 +31,6 @@ public class Critter implements Comparable<Critter> {
     private double speed = 2;
     private int mateTolerance = 10000;
     private double mateRate;
-    private double foodEff;
-    private double waterEff;
-    private double height;
     private double maxHunger = 100;
     private double webbedFeet;
     private double aggressiveness;
@@ -58,6 +56,7 @@ public class Critter implements Comparable<Critter> {
 
     public Critter(String name, World w, int absx, int absy, Critter father, Critter mother) {
         this (name, w, absx, absy, new GenCode (father.getCode (), mother.getCode (), w.getR ()));
+        this.code.mutate (w.getR (), w.data.critterParams.get ("mutationRate"));
         this.hunger = 40;
         this.thirst = 40;
     }
@@ -85,16 +84,13 @@ public class Critter implements Comparable<Critter> {
     }
 
     public void buildTraits() {
-        this.mateRate = shiftToRange (0.5, 2, code.getDecimal ("MateRate"), 256);
-        this.foodEff = shiftToRange (1, 1, code.getDecimal ("FoodEff"), 256);
-        this.waterEff = shiftToRange (1, 1, code.getDecimal ("WaterEff"), 256);
-        this.baseSpeed = shiftToRange (0.5, 2, code.getDecimal ("BaseSpeed"), 256) + world.getR ().nextDouble () / 2 - 0.25;
-        this.height = shiftToRange (0.5, 4, code.getDecimal ("Height"), 256);
-        this.webbedFeet = shiftToRange (0, 3, code.getDecimal ("WebbedFeet"), 256);
-        this.aggressiveness = shiftToRange (0, 10, code.getCardinality ("Aggressiveness"), 256);
+        this.mateRate = shiftToRange (world.data.critterGeneticBounds.get ("mateRateLower"), world.data.critterGeneticBounds.get ("mateRateUpper"), code.getDecimal ("MateRate"), 256);
+        this.baseSpeed = shiftToRange (world.data.critterGeneticBounds.get ("speedLower"), world.data.critterGeneticBounds.get ("speedUpper"), code.getDecimal ("BaseSpeed"), 256) + world.getR ().nextDouble () / 2 - 0.25;
+        this.webbedFeet = shiftToRange (world.data.critterGeneticBounds.get ("webbedLower"), world.data.critterGeneticBounds.get ("webbedUpper"), code.getDecimal ("WebbedFeet"), 256);
+        this.aggressiveness = shiftToRange (world.data.critterGeneticBounds.get ("aggressionLower"), world.data.critterGeneticBounds.get ("aggressionUpper"), code.getCardinality ("Aggressiveness"), 256);
         this.size = code.getCardinality ("Size");
         this.dietType = code.getCardinality ("DietType");
-        this.timeToLive = (int) ((300 + (world.getR ().nextInt (50)) - (mateRate * 80)) + size * 50);
+        this.timeToLive = (int) ((world.data.critterParams.get ("longevityBaseValue") + (world.getR ().nextInt (50)) - (mateRate * world.data.critterParams.get ("longevityMateMultiplier"))) + size * world.data.critterParams.get ("longevitySizeMultiplier"));
         this.mateCooldown = (int) (45 * mateRate * 2);
     }
 
@@ -117,8 +113,8 @@ public class Critter implements Comparable<Critter> {
             action += "Ded";
             return;
         } else {
-            this.thirst += 0.1 * waterEff * size;
-            this.hunger += 0.05 * foodEff * size;
+            this.thirst += 0.1 * size;
+            this.hunger += 0.05 * size;
             this.age += 0.1;
             if (mateElapsedTime > 0) {
                 mateElapsedTime--;
@@ -192,15 +188,15 @@ public class Critter implements Comparable<Critter> {
         world.getCritters ().add (child);
         this.enviro.getCritters ().add (child);
         this.mateElapsedTime = mateCooldown;
-        this.hunger += this.maxHunger / 7;
-        this.thirst += this.maxThirst / 7;
+        this.hunger += this.maxHunger / world.data.critterParams.get ("mateCostHungerDenom");
+        this.thirst += this.maxThirst / world.data.critterParams.get ("mateCostThirstDenom");
     }
 
     //CELLULAR FUNCTIONS
 
     public void split() {
         Critter child = new Critter ("Beehhh", world, absx, absy, this.code);
-        child.getCode ().mutate (world.getR ());
+        child.getCode ().mutate (world.getR (), world.data.critterParams.get ("mutationRate"));
         world.getCritters ().add (child);
         this.enviro.getCritters ().add (child);
         this.hunger += this.maxHunger / 2;
@@ -249,8 +245,8 @@ public class Critter implements Comparable<Critter> {
             this.enviro.getCritters ().remove (this);
             this.enviro = cell.getEnviro ();
             this.enviro.getCritters ().add (this);
-            this.hunger += 0.1 * foodEff * baseSpeed * size * 0.5;
-            this.thirst += 0.05 * waterEff * baseSpeed * size * 0.5;
+            this.hunger += 0.1 * baseSpeed * size * 0.5;
+            this.thirst += 0.05 * baseSpeed * size * 0.5;
         }
         return linear;
     }
@@ -273,11 +269,10 @@ public class Critter implements Comparable<Critter> {
         int n = this.code.getHammingDiff ("AppearanceRecognition", appear);
         if (n > 6) {
             decisionalCore.setBehaviour ("flee");
-            decisionalCore.setInteracting (other);
         } else {
             decisionalCore.setBehaviour ("seek");
-            decisionalCore.setInteracting (other);
         }
+        decisionalCore.setInteracting (other);
     }
 
     public double getBiomass() {
@@ -410,30 +405,6 @@ public class Critter implements Comparable<Critter> {
 
     public void setMateRate(double mateRate) {
         this.mateRate = mateRate;
-    }
-
-    public double getFoodEff() {
-        return foodEff;
-    }
-
-    public void setFoodEff(double foodEff) {
-        this.foodEff = foodEff;
-    }
-
-    public double getWaterEff() {
-        return waterEff;
-    }
-
-    public void setWaterEff(double waterEff) {
-        this.waterEff = waterEff;
-    }
-
-    public double getHeight() {
-        return height;
-    }
-
-    public void setHeight(double height) {
-        this.height = height;
     }
 
     public int getDietType() {
